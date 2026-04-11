@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/imgBackground"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@drawable/img"
+        android:alpha="0.6" /> <LinearLayout
+    android:id="@+id/headerBar"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="16dp"
+    android:gravity="center_vertical"
+    app:layout_constraintTop_toTopOf="parent">
+
+    <ImageView
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:src="@drawable/logo2"
+        android:adjustViewBounds="true"
+        android:scaleType="fitCenter"/> <TextView
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_weight="1"
+    android:layout_marginStart="8dp"
+    android:text="Salma Florist Kediri"
+    android:textColor="#E91E63"
+    android:textSize="18sp"
+    android:textStyle="bold" />
+
+    <ImageView
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="16dp"
+        android:src="@drawable/login" />
+
+    <ImageView
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/menu2" />
+</LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@id/headerBar"
+        app:layout_constraintBottom_toTopOf="@id/btnBelanja">
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Wujudkan Momen\nSpesial dengan\nBunga Indah"
+            android:textAlignment="center"
+            android:textColor="#333333"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:fontFamily="serif" /> <TextView
+        android:id="@+id/tvDesc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Salma Florist Kediri hadir untuk setiap momen..."
+        android:textAlignment="center"
+        android:textColor="#555555"
+        android:textSize="14sp"
+        android:fontFamily="sans-serif-light" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Salma Florist Kediri hadir untuk setiap momen berharga Anda. Dari wisuda, ulang tahun, hingga pernikahan - kami siap melayani dengan rangkaian bunga segar berkualitas tinggi."
+            android:textAlignment="center"
+            android:textColor="#555555"
+            android:textSize="14sp"
+            android:lineSpacingExtra="2dp" />
+    </LinearLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnBelanja"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginBottom="12dp"
+        android:text="Belanja Sekarang"
+        android:textAllCaps="false"
+        android:backgroundTint="#D87A9D"
+        app:cornerRadius="8dp"
+        app:icon="@drawable/keranjang"
+        app:iconGravity="textStart"
+        app:layout_constraintBottom_toTopOf="@id/btnCustom" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnCustom"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginBottom="40dp"
+        android:text="Pesan Custom"
+        android:textAllCaps="false"
+        android:backgroundTint="#00C853"
+        app:cornerRadius="8dp"
+        app:icon="@drawable/wa"
+        app:iconGravity="textStart"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
