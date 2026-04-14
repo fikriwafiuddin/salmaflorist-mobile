@@ -5,9 +5,9 @@
         android:icon="@drawable/img"
         android:title="Beranda" />
     <item
-        android:id="@+id/nav_shop"
+        android:id="@+id/nav_katalog"
         android:icon="@drawable/keranjang"
-        android:title="Belanja" />
+        android:title="Katalog" />
     <item
         android:id="@+id/nav_orders"
         android:icon="@drawable/keranjang"

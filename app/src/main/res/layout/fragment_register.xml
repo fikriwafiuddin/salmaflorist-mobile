@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center_horizontal"
+    android:background="#FFF5F7"> <TextView
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Daftar Akun Baru"
+    android:textSize="24sp"
+    android:textStyle="bold"
+    android:textColor="#D81B60"
+    android:layout_marginBottom="32dp"
+    android:layout_marginTop="50dp"/>
+
+    <EditText
+        android:id="@+id/etNama"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:hint="Nama Lengkap"
+        android:background="@drawable/bg_input_rounded"
+        android:paddingHorizontal="16dp"
+        android:layout_marginBottom="16dp"
+        android:inputType="textPersonName"/>
+
+    <EditText
+        android:id="@+id/etEmail"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:hint="Email"
+        android:background="@drawable/bg_input_rounded"
+        android:paddingHorizontal="16dp"
+        android:layout_marginBottom="16dp"
+        android:inputType="textEmailAddress"/>
+
+    <EditText
+        android:id="@+id/etPassword"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:hint="Password"
+        android:background="@drawable/bg_input_rounded"
+        android:paddingHorizontal="16dp"
+        android:layout_marginBottom="24dp"
+        android:inputType="textPassword"/>
+
+    <Button
+        android:id="@+id/btnRegister"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:text="Daftar Sekarang"
+        android:backgroundTint="#D81B60"
+        android:textColor="@android:color/white"
+        android:textAllCaps="false"/>
+
+    <TextView
+        android:id="@+id/tvLogin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sudah punya akun? Login di sini"
+        android:layout_marginTop="16dp"
+        android:textColor="#555555"/>
+
+</LinearLayout>

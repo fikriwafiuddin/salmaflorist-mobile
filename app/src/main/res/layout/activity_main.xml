@@ -75,12 +75,16 @@
                     android:textSize="16sp" />
 
                 <TextView
+                    android:id="@+id/btnNavAbout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:paddingVertical="14dp"
                     android:text="Tentang Kami"
                     android:textColor="#333333"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground" />
 
                 <TextView
                     android:layout_width="match_parent"

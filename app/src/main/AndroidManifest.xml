@@ -10,6 +10,11 @@
         android:theme="@style/Theme.SalmaFlorist">
 
         <activity
+            android:name=".KatalogActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SalmaFlorist" />
+
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
@@ -18,9 +23,6 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".LoginFragment"
-            android:exported="false" />
 
     </application>
 
