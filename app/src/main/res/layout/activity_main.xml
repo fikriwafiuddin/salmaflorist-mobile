@@ -24,8 +24,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="#FFFFFF"
-            app:itemIconTint="#E91E63"
-            app:itemTextColor="#E91E63"
+            app:itemIconTint="@null"
             app:layout_constraintBottom_toBottomOf="parent"
             app:menu="@menu/menu_bottom" />
 
@@ -59,20 +58,28 @@
                 app:layout_constraintTop_toBottomOf="@id/btnClose">
 
                 <TextView
+                    android:id="@+id/btnNavHome"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:paddingVertical="14dp"
                     android:text="Beranda"
                     android:textColor="#333333"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground" />
 
                 <TextView
+                    android:id="@+id/btnNavKatalog"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:paddingVertical="14dp"
                     android:text="Katalog"
                     android:textColor="#333333"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground" />
 
                 <TextView
                     android:id="@+id/btnNavAbout"
@@ -96,12 +103,16 @@
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/btnNavContact"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:paddingVertical="14dp"
                     android:text="Kontak"
                     android:textColor="#333333"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground" />
 
                 <View
                     android:layout_width="match_parent"
