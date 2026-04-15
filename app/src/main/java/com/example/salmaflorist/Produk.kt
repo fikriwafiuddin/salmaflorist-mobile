@@ -1,8 +1,7 @@
 package com.example.salmaflorist
 
 data class Produk(
-    var id: Int,
-    var nama: String,
-    var kategori: String,
-    var harga: Int
+    val nama: String,
+    val harga: String,
+    val gambar: Int // ID gambar dari folder drawable
 )

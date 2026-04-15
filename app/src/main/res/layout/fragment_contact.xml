@@ -3,37 +3,38 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFF5F7">
+    android:background="#F8EDEF">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp"
-        android:gravity="center_horizontal">
+        android:padding="20dp">
 
+        <!-- HEADER -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Hubungi Kami"
-            android:textSize="28sp"
+            android:textSize="26sp"
             android:textStyle="bold"
-            android:textColor="#1A237E"
-            android:layout_marginTop="20dp"/>
+            android:textColor="#2D2D2D"
+            android:layout_gravity="center"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Kami siap membantu mewujudkan momen spesialmu"
             android:textSize="14sp"
-            android:textColor="#777777"
-            android:layout_marginTop="8dp"
-            android:textAlignment="center"/>
+            android:textColor="#777"
+            android:layout_marginTop="6dp"
+            android:layout_gravity="center"/>
 
+        <!-- CARD -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
+            android:layout_marginTop="24dp"
             app:cardCornerRadius="16dp"
             app:cardElevation="4dp">
 
@@ -47,16 +48,16 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Informasi Toko"
-                    android:textSize="18sp"
                     android:textStyle="bold"
+                    android:textSize="18sp"
                     android:textColor="#E91E63"/>
 
+                <!-- ALAMAT -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_marginTop="20dp"
-                    android:gravity="center_vertical">
+                    android:layout_marginTop="20dp">
 
                     <ImageView
                         android:layout_width="40dp"
@@ -66,64 +67,150 @@
                         android:padding="8dp"/>
 
                     <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
                         android:orientation="vertical"
-                        android:layout_marginStart="16dp">
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
                         <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
                             android:text="Alamat"
                             android:textStyle="bold"
-                            android:textColor="#333333"/>
-                        <TextView
+                            android:textColor="#333"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Jl. Selomangleng, Kec. Mojoroto, Kota Kediri, Jawa Timur"
-                            android:textSize="13sp"/>
+                            android:layout_height="wrap_content"/>
+
+                        <TextView
+                            android:text="Jl. Selomangleng, Kecamatan Mojoroto, Kota Kediri Jawa Timur, Indonesia"
+                            android:textSize="13sp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
                     </LinearLayout>
                 </LinearLayout>
 
+                <!-- WHATSAPP -->
                 <LinearLayout
+                    android:id="@+id/layoutWA"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_marginTop="20dp"
-                    android:gravity="center_vertical">
+                    android:layout_marginTop="20dp">
 
                     <ImageView
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:src="@drawable/wa"
-                        android:padding="4dp"/>
+                        android:background="@drawable/bg_input_rounded"
+                        android:padding="8dp"/>
 
                     <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
                         android:orientation="vertical"
-                        android:layout_marginStart="16dp">
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
                         <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
                             android:text="WhatsApp / Telepon"
                             android:textStyle="bold"
-                            android:textColor="#333333"/>
-                        <TextView
+                            android:textColor="#333"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
+                            android:layout_height="wrap_content"/>
+
+                        <TextView
                             android:text="085808933346"
-                            android:textSize="13sp"/>
-                        <TextView
+                            android:textSize="13sp"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
+                            android:layout_height="wrap_content"/>
+
+                        <TextView
+                            android:id="@+id/btnChat"
                             android:text="Chat Admin Sekarang →"
                             android:textColor="#E91E63"
+                            android:textStyle="bold"
                             android:textSize="12sp"
-                            android:textStyle="bold"/>
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- JAM -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="20dp">
+
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/jam"
+                        android:background="@drawable/bg_input_rounded"
+                        android:padding="8dp"/>
+
+                    <LinearLayout
+                        android:layout_marginStart="16dp"
+                        android:orientation="vertical"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:text="Jam Operasional"
+                            android:textStyle="bold"
+                            android:textColor="#333"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+
+                        <TextView
+                            android:text="Senin - Sabtu: 08.00 - 20.00 WIB"
+                            android:textSize="13sp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+
+                        <TextView
+                            android:text="Minggu: 08.00 - 12.00 WIB"
+                            android:textSize="13sp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- INSTAGRAM -->
+                <LinearLayout
+                    android:id="@+id/layoutIG"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="20dp">
+
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/ig"
+                        android:background="@drawable/bg_input_rounded"
+                        android:padding="8dp"/>
+
+                    <LinearLayout
+                        android:layout_marginStart="16dp"
+                        android:orientation="vertical"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:text="Instagram"
+                            android:textStyle="bold"
+                            android:textColor="#333"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+
+                        <TextView
+                            android:text="@salma.floristry"
+                            android:textColor="#E91E63"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
                     </LinearLayout>
                 </LinearLayout>
 
             </LinearLayout>
         </androidx.cardview.widget.CardView>
+
     </LinearLayout>
 </ScrollView>

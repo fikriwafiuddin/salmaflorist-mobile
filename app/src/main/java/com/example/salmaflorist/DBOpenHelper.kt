@@ -10,11 +10,12 @@ class DBOpenHelper(context: Context) :
 
     companion object {
         private const val DATABASE_NAME = "SalmaFlorist.db"
-        private const val DATABASE_VERSION = 2 // Naikkan versi karena ada perubahan struktur
+        // NAIKKAN VERSION ke 3 agar perubahan kolom gambar terdeteksi
+        private const val DATABASE_VERSION = 4
 
         const val TABLE_USERS = "users"
         const val COLUMN_ID_USER = "id"
-        const val COLUMN_NAMA = "nama" // Tambahkan kolom nama
+        const val COLUMN_NAMA = "nama"
         const val COLUMN_EMAIL = "email"
         const val COLUMN_PASSWORD = "password"
 
@@ -23,10 +24,10 @@ class DBOpenHelper(context: Context) :
         const val COLUMN_NAMA_PRODUK = "nama_produk"
         const val COLUMN_KATEGORI = "kategori"
         const val COLUMN_HARGA = "harga"
+        const val COLUMN_GAMBAR = "gambar" // KOLOM BARU
     }
 
     override fun onCreate(db: SQLiteDatabase) {
-        // Tabel User (Pastikan kolomnya sesuai dengan Register)
         val createTableUser = ("CREATE TABLE $TABLE_USERS (" +
                 "$COLUMN_ID_USER INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "$COLUMN_NAMA TEXT, " +
@@ -34,18 +35,18 @@ class DBOpenHelper(context: Context) :
                 "$COLUMN_PASSWORD TEXT)")
         db.execSQL(createTableUser)
 
-        // Tabel Produk
         val createTableProduk = ("CREATE TABLE $TABLE_PRODUK (" +
                 "$COLUMN_ID_PRODUK INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "$COLUMN_NAMA_PRODUK TEXT, " +
                 "$COLUMN_KATEGORI TEXT, " +
-                "$COLUMN_HARGA INTEGER)")
+                "$COLUMN_HARGA INTEGER, " +
+                "$COLUMN_GAMBAR INTEGER)") // TAMBAHKAN DI SINI
         db.execSQL(createTableProduk)
 
-        // Data Awal Produk
-        db.execSQL("INSERT INTO $TABLE_PRODUK ($COLUMN_NAMA_PRODUK, $COLUMN_KATEGORI, $COLUMN_HARGA) VALUES ('Papan Bunga Ucapan Selamat','Papan bunga',550000)")
-        db.execSQL("INSERT INTO $TABLE_PRODUK ($COLUMN_NAMA_PRODUK, $COLUMN_KATEGORI, $COLUMN_HARGA) VALUES ('Bucket Mawar Merah','Bucket',150000)")
-        db.execSQL("INSERT INTO $TABLE_PRODUK ($COLUMN_NAMA_PRODUK, $COLUMN_KATEGORI, $COLUMN_HARGA) VALUES ('Bunga Meja Elegan','Bunga meja',200000)")
+        // Data Awal Produk (Gunakan R.drawable.img sebagai placeholder)
+        db.execSQL("INSERT INTO $TABLE_PRODUK ($COLUMN_NAMA_PRODUK, $COLUMN_KATEGORI, $COLUMN_HARGA, $COLUMN_GAMBAR) VALUES ('Papan Bunga Ucapan Selamat','Papan bunga',550000, ${R.drawable.papan_bunga})")
+        db.execSQL("INSERT INTO $TABLE_PRODUK ($COLUMN_NAMA_PRODUK, $COLUMN_KATEGORI, $COLUMN_HARGA, $COLUMN_GAMBAR) VALUES ('Bucket Mawar Merah','Bucket',150000, ${R.drawable.mawar_merah})")
+        db.execSQL("INSERT INTO $TABLE_PRODUK ($COLUMN_NAMA_PRODUK, $COLUMN_KATEGORI, $COLUMN_HARGA, $COLUMN_GAMBAR) VALUES ('Bunga Meja Elegan','Bunga meja',200000, ${R.drawable.bunga_meja})")
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -53,8 +54,6 @@ class DBOpenHelper(context: Context) :
         db.execSQL("DROP TABLE IF EXISTS $TABLE_PRODUK")
         onCreate(db)
     }
-
-    // --- FUNGSI DI BAWAH INI HARUS DI LUAR onCreate AGAR BISA DIPANGGIL ---
 
     fun addUser(nama: String, email: String, pass: String): Boolean {
         val db = this.writableDatabase
@@ -95,7 +94,12 @@ class DBOpenHelper(context: Context) :
         val cursor = db.rawQuery(query, null)
         if (cursor.moveToFirst()) {
             do {
-                list.add(Produk(cursor.getInt(0), cursor.getString(1), cursor.getString(2), cursor.getInt(3)))
+                // Sesuai dengan Model Produk(nama, harga, gambar)
+                val nama = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NAMA_PRODUK))
+                val harga = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_HARGA)).toString()
+                val gambar = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_GAMBAR))
+
+                list.add(Produk(nama, harga, gambar))
             } while (cursor.moveToNext())
         }
         cursor.close()

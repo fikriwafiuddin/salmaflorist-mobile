@@ -3,7 +3,7 @@ package com.example.salmaflorist
 import android.os.Bundle
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.GridLayoutManager // Gunakan Grid agar lebih cantik
 import androidx.recyclerview.widget.RecyclerView
 
 class KatalogActivity : AppCompatActivity() {
@@ -33,7 +33,8 @@ class KatalogActivity : AppCompatActivity() {
         spinnerSort.adapter =
             ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, sort)
 
-        recyclerView.layoutManager = LinearLayoutManager(this)
+        // TIPS: Gunakan GridLayoutManager (2 kolom) supaya tampilan katalog seperti olshop beneran
+        recyclerView.layoutManager = GridLayoutManager(this, 2)
 
         loadData("", "Semua", "Default")
 
@@ -47,7 +48,13 @@ class KatalogActivity : AppCompatActivity() {
     }
 
     private fun loadData(keyword: String, kategori: String, sort: String) {
+        // Ambil data dari database
         list = db.getProduk(keyword, kategori, sort)
+
+        // Pastikan di dalam db.getProduk, kamu sudah mengisi field 'gambar'
+        // dengan R.drawable.nama_gambar. Jika belum ada di DB,
+        // sementara bisa kita set manual di sini agar tidak error:
+
         adapter = ProdukAdapter(list)
         recyclerView.adapter = adapter
     }

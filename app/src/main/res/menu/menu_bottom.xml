@@ -9,11 +9,11 @@
         android:icon="@drawable/keranjang"
         android:title="Katalog" />
     <item
-        android:id="@+id/nav_orders"
-        android:icon="@drawable/keranjang"
-        android:title="Pesanan" />
+        android:id="@+id/nav_testimoni"
+        android:icon="@drawable/star"
+        android:title="Testimoni" />
     <item
-        android:id="@+id/nav_profile"
-        android:icon="@drawable/login"
-        android:title="Login" />
+        android:id="@+id/nav_about"
+        android:icon="@drawable/info"
+        android:title="Tentang" />
 </menu>

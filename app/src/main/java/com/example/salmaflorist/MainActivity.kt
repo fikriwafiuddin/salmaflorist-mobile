@@ -16,13 +16,11 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
-
         // 1. Inisialisasi View Binding
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 2. Listener untuk memantau perubahan Fragment (Solusi agar BottomNav muncul lagi saat Back)
+        // 2. Listener untuk memantau perubahan Fragment
         supportFragmentManager.addOnBackStackChangedListener {
             val currentFragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
             updateBottomNavVisibility(currentFragment)
@@ -64,8 +62,12 @@ class MainActivity : AppCompatActivity() {
                     startActivity(intent)
                     true
                 }
-                R.id.nav_profile -> {
-                    loadFragment(LoginFragment())
+                R.id.nav_testimoni -> {
+                    loadFragment(TestimoniFragment())
+                    true
+                }
+                R.id.nav_about -> {
+                    loadFragment(AboutFragment())
                     true
                 }
                 else -> false
@@ -76,30 +78,47 @@ class MainActivity : AppCompatActivity() {
     private fun setupDrawerMenu() {
         val navView = binding.navView
 
-        // Tombol Login di dalam Drawer
-        val btnNavLogin = navView.findViewById<View>(R.id.btnNavLogin)
-        btnNavLogin?.setOnClickListener {
+        // Klik Beranda
+        navView.findViewById<View>(R.id.btnNavHome)?.setOnClickListener {
             closeDrawer()
-            loadFragment(LoginFragment())
+            loadFragment(HomeFragment())
         }
 
-        // Tombol Tentang Kami di dalam Drawer
-        val btnAbout = navView.findViewById<View>(R.id.btnNavAbout)
-        btnAbout?.setOnClickListener {
+        // Klik Katalog
+        navView.findViewById<View>(R.id.btnNavKatalog)?.setOnClickListener {
+            closeDrawer()
+            val intent = Intent(this, KatalogActivity::class.java)
+            startActivity(intent)
+        }
+
+        // Klik Kontak (DITAMBAHKAN AGAR JALAN)
+        navView.findViewById<View>(R.id.btnNavContact)?.setOnClickListener {
+            closeDrawer()
+            loadFragment(ContactFragment())
+        }
+
+        // Tombol Tentang Kami
+        navView.findViewById<View>(R.id.btnNavAbout)?.setOnClickListener {
             closeDrawer()
             loadFragment(AboutFragment())
         }
 
-        // Tombol Close (X) di dalam Drawer
-        val btnClose = navView.findViewById<View>(R.id.btnClose)
-        btnClose?.setOnClickListener {
+        // Tombol Login
+        navView.findViewById<View>(R.id.btnNavLogin)?.setOnClickListener {
+            closeDrawer()
+            loadFragment(LoginFragment())
+        }
+
+        // Tombol Close (X)
+        navView.findViewById<View>(R.id.btnClose)?.setOnClickListener {
             closeDrawer()
         }
     }
 
-    // Fungsi untuk mengatur muncul/hilangnya Bottom Navigation
+    // Mengatur visibilitas Bottom Navigation
     private fun updateBottomNavVisibility(fragment: Fragment?) {
-        if (fragment is LoginFragment || fragment is RegisterFragment || fragment is AboutFragment) {
+        // Bottom nav disembunyikan di fragment tertentu agar tampilan rapi
+        if (fragment is LoginFragment || fragment is RegisterFragment || fragment is AboutFragment || fragment is ContactFragment) {
             binding.bottomNavigation.visibility = View.GONE
         } else {
             binding.bottomNavigation.visibility = View.VISIBLE
@@ -117,9 +136,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadFragment(fragment: Fragment) {
-        // Jalankan pengecekan visibilitas saat fragment baru dimuat
         updateBottomNavVisibility(fragment)
-
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, fragment)
             .addToBackStack(null)
