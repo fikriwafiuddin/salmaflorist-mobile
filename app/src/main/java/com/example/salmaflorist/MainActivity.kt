@@ -1,128 +1,141 @@
 package com.example.salmaflorist
 
 import android.content.Intent
+import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
+import android.view.MenuItem
 import android.view.View
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
 import com.example.salmaflorist.databinding.ActivityMainBinding
+import com.google.android.material.navigation.NavigationBarView
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListener {
 
-    private lateinit var binding: ActivityMainBinding
+    lateinit var binding: ActivityMainBinding
+
+    lateinit var fragHome: HomeFragment
+    lateinit var fragCatalog: CatalogFragment
+    lateinit var fragCart: CartFragment
+    lateinit var fragProfile: ProfileFragment
+
+    lateinit var ft: FragmentTransaction
+
+    lateinit var db: DBOpenHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
-
-        // 1. Inisialisasi View Binding
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 2. Listener untuk memantau perubahan Fragment (Solusi agar BottomNav muncul lagi saat Back)
-        supportFragmentManager.addOnBackStackChangedListener {
-            val currentFragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
-            updateBottomNavVisibility(currentFragment)
-        }
+        binding.bottomNavigation.setOnItemSelectedListener(this)
+        binding.bottomNavigation.itemIconTintList = null
 
-        // 3. Penanganan tombol Back
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                if (binding.drawerLayout.isDrawerOpen(GravityCompat.END)) {
-                    closeDrawer()
-                } else {
-                    if (supportFragmentManager.backStackEntryCount > 1) {
-                        supportFragmentManager.popBackStack()
-                    } else {
-                        isEnabled = false
-                        onBackPressedDispatcher.onBackPressed()
-                    }
-                }
-            }
-        })
+        fragHome = HomeFragment()
+        fragCatalog = CatalogFragment()
+        fragCart = CartFragment()
+        fragProfile = ProfileFragment()
 
-        // 4. Set Fragment awal (Home)
+        db = DBOpenHelper(this)
+
         if (savedInstanceState == null) {
-            loadFragment(HomeFragment())
+            binding.bottomNavigation.selectedItemId = R.id.nav_home
+
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainer, fragHome)
+                .commit()
         }
+    }
 
-        // 5. Logika Menu Drawer (NavigationView)
-        setupDrawerMenu()
+    fun getObject(): DBOpenHelper {
+        return db
+    }
 
-        // 6. Bottom Navigation Listener
-        binding.bottomNavigation.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_home -> {
-                    loadFragment(HomeFragment())
-                    true
-                }
-                R.id.nav_katalog -> {
-                    val intent = Intent(this, KatalogActivity::class.java)
-                    startActivity(intent)
-                    true
-                }
-                R.id.nav_profile -> {
-                    loadFragment(LoginFragment())
-                    true
-                }
-                else -> false
+//    private fun setupDrawerMenu() {
+//        val navView = binding.navView
+//
+//        // Tombol Login di dalam Drawer
+//        val btnNavLogin = navView.findViewById<View>(R.id.btnNavLogin)
+//        btnNavLogin?.setOnClickListener {
+//            closeDrawer()
+//            loadFragment(LoginFragment())
+//        }
+//
+//        // Tombol Tentang Kami di dalam Drawer
+//        val btnAbout = navView.findViewById<View>(R.id.btnNavAbout)
+//        btnAbout?.setOnClickListener {
+//            closeDrawer()
+//            loadFragment(AboutFragment())
+//        }
+//
+//        // Tombol Close (X) di dalam Drawer
+//        val btnClose = navView.findViewById<View>(R.id.btnClose)
+//        btnClose?.setOnClickListener {
+//            closeDrawer()
+//        }
+//    }
+//
+//    // Fungsi untuk mengatur muncul/hilangnya Bottom Navigation
+//    private fun updateBottomNavVisibility(fragment: Fragment?) {
+//        if (fragment is LoginFragment || fragment is RegisterFragment || fragment is AboutFragment) {
+//            binding.bottomNavigation.visibility = View.GONE
+//        } else {
+//            binding.bottomNavigation.visibility = View.VISIBLE
+//        }
+//    }
+//
+//    fun openDrawer() {
+//        binding.drawerLayout.openDrawer(GravityCompat.END)
+//    }
+//
+//    fun closeDrawer() {
+//        if (binding.drawerLayout.isDrawerOpen(GravityCompat.END)) {
+//            binding.drawerLayout.closeDrawer(GravityCompat.END)
+//        }
+//    }
+//
+//    private fun loadFragment(fragment: Fragment) {
+//        // Jalankan pengecekan visibilitas saat fragment baru dimuat
+//        updateBottomNavVisibility(fragment)
+//
+//        supportFragmentManager.beginTransaction()
+//            .replace(R.id.fragmentContainer, fragment)
+//            .addToBackStack(null)
+//            .commit()
+//    }
+
+    override fun onNavigationItemSelected(p0: MenuItem): Boolean {
+        when (p0.itemId) {
+            R.id.nav_home -> {
+                ft = supportFragmentManager.beginTransaction()
+
+                ft.replace(R.id.fragmentContainer, fragHome).commit()
+                binding.fragmentContainer.visibility = View.VISIBLE
+            }
+            R.id.nav_catalog -> {
+                ft = supportFragmentManager.beginTransaction()
+
+                ft.replace(R.id.fragmentContainer, fragCatalog).commit()
+                binding.fragmentContainer.visibility = View.VISIBLE
+            }
+            R.id.nav_cart -> {
+                ft = supportFragmentManager.beginTransaction()
+
+                ft.replace(R.id.fragmentContainer, fragCart).commit()
+                binding.fragmentContainer.visibility = View.VISIBLE
+            }
+            R.id.nav_profile -> {
+                ft = supportFragmentManager.beginTransaction()
+
+                ft.replace(R.id.fragmentContainer, fragProfile).commit()
+                binding.fragmentContainer.visibility = View.VISIBLE
             }
         }
-    }
 
-    private fun setupDrawerMenu() {
-        val navView = binding.navView
-
-        // Tombol Login di dalam Drawer
-        val btnNavLogin = navView.findViewById<View>(R.id.btnNavLogin)
-        btnNavLogin?.setOnClickListener {
-            closeDrawer()
-            loadFragment(LoginFragment())
-        }
-
-        // Tombol Tentang Kami di dalam Drawer
-        val btnAbout = navView.findViewById<View>(R.id.btnNavAbout)
-        btnAbout?.setOnClickListener {
-            closeDrawer()
-            loadFragment(AboutFragment())
-        }
-
-        // Tombol Close (X) di dalam Drawer
-        val btnClose = navView.findViewById<View>(R.id.btnClose)
-        btnClose?.setOnClickListener {
-            closeDrawer()
-        }
-    }
-
-    // Fungsi untuk mengatur muncul/hilangnya Bottom Navigation
-    private fun updateBottomNavVisibility(fragment: Fragment?) {
-        if (fragment is LoginFragment || fragment is RegisterFragment || fragment is AboutFragment) {
-            binding.bottomNavigation.visibility = View.GONE
-        } else {
-            binding.bottomNavigation.visibility = View.VISIBLE
-        }
-    }
-
-    fun openDrawer() {
-        binding.drawerLayout.openDrawer(GravityCompat.END)
-    }
-
-    fun closeDrawer() {
-        if (binding.drawerLayout.isDrawerOpen(GravityCompat.END)) {
-            binding.drawerLayout.closeDrawer(GravityCompat.END)
-        }
-    }
-
-    private fun loadFragment(fragment: Fragment) {
-        // Jalankan pengecekan visibilitas saat fragment baru dimuat
-        updateBottomNavVisibility(fragment)
-
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.fragmentContainer, fragment)
-            .addToBackStack(null)
-            .commit()
+        return  true
     }
 }

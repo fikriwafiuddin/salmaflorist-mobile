@@ -26,26 +26,26 @@ class RegisterFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         dbHelper = DBOpenHelper(requireContext())
 
-        binding.btnRegister.setOnClickListener {
-            val email = binding.etEmail.text.toString()
-            val password = binding.etPassword.text.toString()
-            val nama = binding.etNama.text.toString()
-
-            if (email.isEmpty() || password.isEmpty() || nama.isEmpty()) {
-                Toast.makeText(requireContext(), "Semua kolom harus diisi!", Toast.LENGTH_SHORT).show()
-            } else {
-                // Kamu perlu menambahkan fungsi addUser di DBOpenHelper-mu
-                // Gunakan dbHelper (huruf kecil), bukan DBOpenHelper (nama class)
-                val success = dbHelper.addUser(email, password, nama)
-                if (success) {
-                    Toast.makeText(requireContext(), "Daftar Berhasil! Silakan Login", Toast.LENGTH_SHORT).show()
-                    // Kembali ke Login
-                    parentFragmentManager.popBackStack()
-                } else {
-                    Toast.makeText(requireContext(), "Pendaftaran Gagal!", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
+//        binding.btnRegister.setOnClickListener {
+//            val email = binding.etEmail.text.toString()
+//            val password = binding.etPassword.text.toString()
+//            val nama = binding.etNama.text.toString()
+//
+//            if (email.isEmpty() || password.isEmpty() || nama.isEmpty()) {
+//                Toast.makeText(requireContext(), "Semua kolom harus diisi!", Toast.LENGTH_SHORT).show()
+//            } else {
+//                // Kamu perlu menambahkan fungsi addUser di DBOpenHelper-mu
+//                // Gunakan dbHelper (huruf kecil), bukan DBOpenHelper (nama class)
+//                val success = dbHelper.addUser(email, password, nama)
+//                if (success) {
+//                    Toast.makeText(requireContext(), "Daftar Berhasil! Silakan Login", Toast.LENGTH_SHORT).show()
+//                    // Kembali ke Login
+//                    parentFragmentManager.popBackStack()
+//                } else {
+//                    Toast.makeText(requireContext(), "Pendaftaran Gagal!", Toast.LENGTH_SHORT).show()
+//                }
+//            }
+//        }
     }
 
     override fun onDestroyView() {

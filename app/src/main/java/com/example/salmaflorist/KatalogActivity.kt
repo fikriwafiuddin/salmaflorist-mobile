@@ -10,7 +10,7 @@ class KatalogActivity : AppCompatActivity() {
 
     lateinit var db: DBOpenHelper
     lateinit var recyclerView: RecyclerView
-    lateinit var adapter: ProdukAdapter
+//    lateinit var adapter: ProdukAdapter
     lateinit var list: ArrayList<Produk>
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,8 +47,8 @@ class KatalogActivity : AppCompatActivity() {
     }
 
     private fun loadData(keyword: String, kategori: String, sort: String) {
-        list = db.getProduk(keyword, kategori, sort)
-        adapter = ProdukAdapter(list)
-        recyclerView.adapter = adapter
+//        list = db.getProduk(keyword, kategori, sort)
+//        adapter = ProdukAdapter(list)
+//        recyclerView.adapter = adapter
     }
 }

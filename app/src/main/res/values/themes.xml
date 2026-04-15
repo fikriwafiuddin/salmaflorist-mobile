@@ -1,9 +1,22 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.SalmaFlorist" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <!-- Primary brand color: Pink Rose (matches web project) -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryVariant">@color/primary_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/accent_green</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <!-- Bottom nav / surface colors -->
+        <item name="colorSurface">@color/bg_white</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <!-- Status bar color -->
+        <item name="android:statusBarColor">@color/primary</item>
     </style>
 
     <style name="Theme.SalmaFlorist" parent="Base.Theme.SalmaFlorist" />
+
+    <style name="RoundedSquare" parent="">
+        <item name="cornerSize">12dp</item>
+    </style>
 </resources>

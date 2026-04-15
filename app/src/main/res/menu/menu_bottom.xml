@@ -2,18 +2,18 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/nav_home"
-        android:icon="@drawable/img"
+        android:icon="@drawable/ic_home"
         android:title="Beranda" />
     <item
-        android:id="@+id/nav_katalog"
-        android:icon="@drawable/keranjang"
+        android:id="@+id/nav_catalog"
+        android:icon="@drawable/ic_catalog"
         android:title="Katalog" />
     <item
-        android:id="@+id/nav_orders"
-        android:icon="@drawable/keranjang"
-        android:title="Pesanan" />
+        android:id="@+id/nav_cart"
+        android:icon="@drawable/ic_cart"
+        android:title="Keranjang" />
     <item
         android:id="@+id/nav_profile"
-        android:icon="@drawable/login"
-        android:title="Login" />
+        android:icon="@drawable/ic_user"
+        android:title="Akun" />
 </menu>

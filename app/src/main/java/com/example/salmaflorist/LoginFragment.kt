@@ -36,27 +36,27 @@ class LoginFragment : Fragment() {
                 .commit()
         }
 
-        binding.btnLogin.setOnClickListener {
-            // PERBAIKAN 2: Pastikan ID email sesuai dengan di fragment_login.xml (biasanya etEmail)
-            // Saya ganti dari labelEmail ke etEmail agar standar
-            val email = binding.etEmail.text.toString().trim()
-            val password = binding.etPassword.text.toString().trim()
-
-            if (email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(requireContext(), "Isi semua data!", Toast.LENGTH_SHORT).show()
-            } else {
-                if (dbHelper.checkUser(email, password)) {
-                    Toast.makeText(requireContext(), "Login Berhasil!", Toast.LENGTH_SHORT).show()
-
-                    // Pindah ke KatalogActivity
-                    val intent = Intent(requireContext(), KatalogActivity::class.java)
-                    startActivity(intent)
-                    activity?.finish()
-                } else {
-                    Toast.makeText(requireContext(), "Email atau Password Salah!", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
+//        binding.btnLogin.setOnClickListener {
+//            // PERBAIKAN 2: Pastikan ID email sesuai dengan di fragment_login.xml (biasanya etEmail)
+//            // Saya ganti dari labelEmail ke etEmail agar standar
+//            val email = binding.etEmail.text.toString().trim()
+//            val password = binding.etPassword.text.toString().trim()
+//
+//            if (email.isEmpty() || password.isEmpty()) {
+//                Toast.makeText(requireContext(), "Isi semua data!", Toast.LENGTH_SHORT).show()
+//            } else {
+//                if (dbHelper.checkUser(email, password)) {
+//                    Toast.makeText(requireContext(), "Login Berhasil!", Toast.LENGTH_SHORT).show()
+//
+//                    // Pindah ke KatalogActivity
+//                    val intent = Intent(requireContext(), KatalogActivity::class.java)
+//                    startActivity(intent)
+//                    activity?.finish()
+//                } else {
+//                    Toast.makeText(requireContext(), "Email atau Password Salah!", Toast.LENGTH_SHORT).show()
+//                }
+//            }
+//        }
     }
 
     override fun onDestroyView() {

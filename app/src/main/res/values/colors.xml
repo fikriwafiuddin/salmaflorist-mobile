@@ -2,4 +2,37 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Salma Florist Primary Theme Colors (matching web) -->
+    <color name="primary">#D87A9D</color>          <!-- Pink Rose - matches web primary -->
+    <color name="primary_dark">#C0587E</color>     <!-- Darker pink -->
+    <color name="primary_light">#F2C4D8</color>    <!-- Light pink -->
+    <color name="primary_bg">#FFF5F8</color>       <!-- Very light pink bg -->
+
+    <!-- Accent / Secondary (Green - matches web success/whatsapp) -->
+    <color name="accent_green">#4CAF50</color>
+    <color name="accent_green_dark">#388E3C</color>
+
+    <!-- Neutral / Typography -->
+    <color name="text_primary">#1A1A1A</color>
+    <color name="text_secondary">#6B7280</color>
+    <color name="text_muted">#9CA3AF</color>
+    <color name="text_on_primary">#FFFFFF</color>
+
+    <!-- Backgrounds -->
+    <color name="bg_white">#FFFFFF</color>
+    <color name="bg_light">#FAFAFA</color>
+    <color name="bg_card">#FFFFFF</color>
+    <color name="bg_pink_light">#FFF0F5</color>
+    <color name="bg_green_light">#F0FFF4</color>
+    <color name="bg_gradient_start">#FFF5F8</color>
+    <color name="bg_gradient_end">#F0FFF4</color>
+
+    <!-- Divider & Border -->
+    <color name="divider">#E5E7EB</color>
+    <color name="card_stroke">#F3E8EE</color>
+
+    <!-- Star rating color -->
+    <color name="star_filled">#F59E0B</color>
+    <color name="star_empty">#E5E7EB</color>
 </resources>
