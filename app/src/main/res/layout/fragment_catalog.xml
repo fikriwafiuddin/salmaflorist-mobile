@@ -84,27 +84,19 @@
                             app:cornerRadius="8dp" />
                     </LinearLayout>
 
-                    <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    <Spinner
+                        android:id="@+id/spinnerCategory"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        app:hintEnabled="false"
-                        app:boxStrokeColor="@color/divider">
-
-                        <AutoCompleteTextView
-                            android:id="@+id/spinnerCategory"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:hint="Semua Kategori"
-                            android:textColor="@color/text_primary"
-                            android:textSize="14sp" />
-                    </com.google.android.material.textfield.TextInputLayout>
+                        android:hint="Semua Kategori"
+                        android:inputType="none"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp" />
 
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:layout_marginVertical="16dp"
+                        android:layout_marginVertical="8dp"
                         android:background="@color/divider" />
 
                     <LinearLayout
@@ -119,21 +111,13 @@
                             android:src="@drawable/ic_sliders"
                             app:tint="@color/text_muted" />
 
-                        <com.google.android.material.textfield.TextInputLayout
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                            android:layout_width="180dp"
+                        <Spinner
+                            android:id="@+id/spinnerPriceSort"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            app:hintEnabled="false"
-                            app:boxStrokeColor="@color/divider">
-
-                            <AutoCompleteTextView
-                                android:id="@+id/spinnerPriceSort"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:hint="Urutkan Harga"
-                                android:textSize="14sp" />
-                        </com.google.android.material.textfield.TextInputLayout>
+                            android:hint="Urutkan Harga"
+                            android:inputType="none"
+                            android:textSize="14sp" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

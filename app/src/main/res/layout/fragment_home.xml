@@ -392,7 +392,8 @@
                     android:paddingEnd="8dp"
                     android:clipToPadding="false"
                     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                    android:orientation="horizontal" />
+                    android:orientation="horizontal"
+                    app:spanCount="2"/>
 
             </LinearLayout>
 

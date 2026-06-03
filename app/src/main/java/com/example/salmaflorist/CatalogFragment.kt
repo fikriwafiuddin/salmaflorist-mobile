@@ -1,6 +1,5 @@
 package com.example.salmaflorist
 
-import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -8,14 +7,13 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.recyclerview.widget.GridLayoutManager
+import com.example.salmaflorist.adapter.CatalogProductAdapter
 import com.example.salmaflorist.databinding.FragmentCatalogBinding
-import com.example.salmaflorist.databinding.FragmentHomeBinding
 
 class CatalogFragment : Fragment() {
-
-    // View Binding setup yang aman untuk Fragment
     private var _binding: FragmentCatalogBinding? = null
     private val binding get() = _binding!!
 
@@ -38,33 +36,39 @@ class CatalogFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Setup UI
         setupFilterUI()
         setupProductList()
     }
 
     private fun setupFilterUI() {
-        // 1. Setup Kategori Dropdown
         val categories = db.getAllCategories()
-        val categoryNames = mutableListOf("Semua") // Untuk pilihan 'all'
+        val categoryNames = mutableListOf("Semua")
         categoryNames.addAll(categories.map { it.name })
 
         val catAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, categoryNames)
-        binding.spinnerCategory.setAdapter(catAdapter)
+        binding.spinnerCategory.adapter = catAdapter
 
-        binding.spinnerCategory.setOnItemClickListener { _, _, position, _ ->
-            currentCategoryId = if (position == 0) "all" else categories[position - 1].id.toString()
-            setupProductList()
+        binding.spinnerCategory.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                currentCategoryId = if (position == 0) "all" else categories[position - 1].id.toString()
+                setupProductList()
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
         // 2. Setup Sort Dropdown
         val sortOptions = listOf("Default", "Harga Terendah", "Harga Tertinggi")
         val sortAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, sortOptions)
-        binding.spinnerPriceSort.setAdapter(sortAdapter)
+        binding.spinnerPriceSort.adapter = sortAdapter
 
-        binding.spinnerPriceSort.setOnItemClickListener { _, _, _, id ->
-            currentSort = sortOptions[id.toInt()]
-            setupProductList()
+        binding.spinnerPriceSort.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                currentSort = sortOptions[position]
+                setupProductList()
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
         // 3. Setup Search (Real-time atau via tombol)
@@ -78,7 +82,6 @@ class CatalogFragment : Fragment() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
 
-        // Jika ingin manual via tombol 'Cari' sesuai desain Laravel:
         binding.btnSearch.setOnClickListener {
             currentKeyword = binding.etSearch.text.toString()
             setupProductList()
@@ -86,7 +89,6 @@ class CatalogFragment : Fragment() {
     }
 
     private fun setupProductList() {
-        // Mengambil data dari SQLite (Gunakan method JOIN yang kita bahas sebelumnya)
         val products = db.getProducts(currentKeyword, currentCategoryId, currentSort)
 
         if (products.isEmpty()) {
@@ -96,12 +98,10 @@ class CatalogFragment : Fragment() {
             binding.tvEmptyState.visibility = View.GONE
             binding.rvProducts.visibility = View.VISIBLE
 
-            // Inisialisasi Adapter & LayoutManager (2 kolom seperti web)
-            val adapter = ProductAdapter(products, db)
+            val adapter = CatalogProductAdapter(products, db)
             binding.rvProducts.apply {
                 layoutManager = GridLayoutManager(requireContext(), 2)
                 this.adapter = adapter
-                // Agar scrolling lebih halus di dalam NestedScrollView
                 isNestedScrollingEnabled = false
             }
         }
@@ -109,7 +109,7 @@ class CatalogFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Penting: Set binding ke null untuk menghindari memory leak
+        // Avoid memory leak
         _binding = null
     }
 

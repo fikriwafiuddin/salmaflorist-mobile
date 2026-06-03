@@ -3,17 +3,22 @@ package com.example.salmaflorist
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearSnapHelper
+import androidx.recyclerview.widget.PagerSnapHelper
+import androidx.recyclerview.widget.RecyclerView
+import com.example.salmaflorist.adapter.HomeProductAdapter
 import com.example.salmaflorist.databinding.FragmentCatalogBinding
 import com.example.salmaflorist.databinding.FragmentHomeBinding
 
 class HomeFragment : Fragment() {
-
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
 
@@ -60,21 +65,18 @@ class HomeFragment : Fragment() {
     // SETUP HERO SECTION BUTTONS
     // ==========================================================
     private fun setupHeroButtons() {
-        // Tombol "Belanja Sekarang" → buka KatalogActivity
         binding.btnBelanja.setOnClickListener {
-            val intent = Intent(requireContext(), KatalogActivity::class.java)
-            startActivity(intent)
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainer, CatalogFragment())
+                .addToBackStack(null)
+                .commit()
         }
 
-        // Tombol "Pesan Custom" → buka WhatsApp
         binding.btnCustom.setOnClickListener {
             bukaWhatsApp()
         }
     }
 
-    // ==========================================================
-    // SETUP PRODUK PILIHAN (Horizontal RecyclerView dari SQLite)
-    // ==========================================================
     private fun setupFeaturedProducts() {
         val products = db.getTopProducts()
 
@@ -82,39 +84,31 @@ class HomeFragment : Fragment() {
         android.util.Log.d("SALMA_DEBUG", "Data ditemukan: ${products.size}")
 
         if (products.isNotEmpty()) {
-            val adapter = ProductAdapter(products, db)
+            val adapter = HomeProductAdapter(products, db)
             binding.rvProdukHome.apply {
-                this.adapter = adapter // HUBUNGKAN ADAPTER
+                this.adapter = adapter
                 layoutManager = LinearLayoutManager(
                     requireContext(),
                     LinearLayoutManager.HORIZONTAL,
                     false
                 )
-                // PENTING: Matikan nested scroll agar muncul di dalam ScrollView
-                isNestedScrollingEnabled = false
             }
         }
 
         binding.tvLihatSemua.setOnClickListener {
-            // Jika Anda menggunakan Fragment untuk Katalog, gunakan navigasi Fragment
-            // Jika Katalog adalah Activity, kode ini sudah benar
-            val intent = Intent(requireContext(), KatalogActivity::class.java)
-            startActivity(intent)
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainer, CatalogFragment())
+                .addToBackStack(null)
+                .commit()
         }
     }
 
-    // ==========================================================
-    // SETUP CTA BUTTON (WhatsApp)
-    // ==========================================================
     private fun setupCtaButton() {
         binding.btnHubungiKami.setOnClickListener {
             bukaWhatsApp()
         }
     }
 
-    // ==========================================================
-    // HELPER: Buka WhatsApp
-    // ==========================================================
     private fun bukaWhatsApp() {
         val nomorWA = "6285808933346"
         val pesan = "Halo Salma Florist, saya ingin memesan bunga."

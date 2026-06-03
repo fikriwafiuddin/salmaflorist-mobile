@@ -85,47 +85,6 @@
                 android:textColor="@color/primary"
                 android:textSize="18sp"
                 android:fontFamily="sans-serif-black" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:orientation="horizontal"
-                android:gravity="end"
-                android:weightSum="1.5"> <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnDetail"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="wrap_content"
-                android:layout_height="16dp"  android:layout_weight="0.6"  android:insetTop="0dp"
-                android:insetBottom="0dp"
-                app:icon="@drawable/ic_eye"
-                app:iconPadding="0dp"
-                app:iconSize="8dp"
-                app:iconGravity="textStart"
-                app:cornerRadius="32dp"
-                app:strokeColor="@color/divider" />
-
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="0.1" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnAddToCart"
-                    style="@style/Widget.Material3.Button.TonalButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="16dp"  android:layout_weight="0.8"  android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:backgroundTint="@color/bg_pink_light"
-                    android:textColor="@color/primary_dark"
-                    app:icon="@drawable/ic_cart"
-                    app:iconPadding="0dp"
-                    app:iconSize="8dp"
-                    app:iconGravity="textStart"
-                    app:iconTint="@color/primary_dark"
-                    app:cornerRadius="32dp"      />
-
-            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
