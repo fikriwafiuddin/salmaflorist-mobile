@@ -98,13 +98,23 @@ class CatalogFragment : Fragment() {
             binding.tvEmptyState.visibility = View.GONE
             binding.rvProducts.visibility = View.VISIBLE
 
-            val adapter = CatalogProductAdapter(products, db)
+            val adapter = CatalogProductAdapter(products, db) { product ->
+                navigateToDetail(product)
+            }
             binding.rvProducts.apply {
                 layoutManager = GridLayoutManager(requireContext(), 2)
                 this.adapter = adapter
                 isNestedScrollingEnabled = false
             }
         }
+    }
+
+    private fun navigateToDetail(product: Product) {
+        val fragment = ProductDetailFragment.newInstance(product)
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, fragment)
+            .addToBackStack(null)
+            .commit()
     }
 
     override fun onDestroyView() {

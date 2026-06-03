@@ -7,11 +7,16 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.salmaflorist.DBOpenHelper
+import com.example.salmaflorist.Product
 import com.example.salmaflorist.R
 import java.text.NumberFormat
 import java.util.Locale
 
-class CatalogProductAdapter(private val products: List<com.example.salmaflorist.Product>, private val dbHelper: DBOpenHelper): RecyclerView.Adapter<CatalogProductAdapter.ProductViewHolder>() {
+class CatalogProductAdapter(
+    private val products: List<Product>,
+    private val dbHelper: DBOpenHelper,
+    private val onItemClick: (Product) -> Unit
+): RecyclerView.Adapter<CatalogProductAdapter.ProductViewHolder>() {
     class ProductViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val ivImage: ImageView = view.findViewById(R.id.ivProductImage)
         val tvBadge: TextView = view.findViewById(R.id.tvCategoryBadge)
@@ -31,6 +36,8 @@ class CatalogProductAdapter(private val products: List<com.example.salmaflorist.
         holder.tvName.text = product.name
         holder.tvDesc.text = product.description
         holder.tvBadge.text = product.category.name
+
+        holder.itemView.setOnClickListener { onItemClick(product) }
 
         val localeID = Locale("in", "ID")
         val formatter =

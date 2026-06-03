@@ -84,7 +84,9 @@ class HomeFragment : Fragment() {
         android.util.Log.d("SALMA_DEBUG", "Data ditemukan: ${products.size}")
 
         if (products.isNotEmpty()) {
-            val adapter = HomeProductAdapter(products, db)
+            val adapter = HomeProductAdapter(products, db) { product ->
+                navigateToDetail(product)
+            }
             binding.rvProdukHome.apply {
                 this.adapter = adapter
                 layoutManager = LinearLayoutManager(
@@ -107,6 +109,14 @@ class HomeFragment : Fragment() {
         binding.btnHubungiKami.setOnClickListener {
             bukaWhatsApp()
         }
+    }
+
+    private fun navigateToDetail(product: Product) {
+        val fragment = ProductDetailFragment.newInstance(product)
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, fragment)
+            .addToBackStack(null)
+            .commit()
     }
 
     private fun bukaWhatsApp() {

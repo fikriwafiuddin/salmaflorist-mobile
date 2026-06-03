@@ -1,5 +1,7 @@
 package com.example.salmaflorist
 
+import java.io.Serializable
+
 data class Product (
     val id: Int,
     val categoryId: Int,
@@ -9,4 +11,4 @@ data class Product (
     val weight: Int,
     val image: String,
     val category: Category
-)
+) : Serializable

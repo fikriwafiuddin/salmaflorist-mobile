@@ -13,7 +13,8 @@ import java.util.Locale
 
 class HomeProductAdapter(
     private val products: List<com.example.salmaflorist.Product>,
-    private val dbHelper: DBOpenHelper
+    private val dbHelper: DBOpenHelper,
+    private val onItemClick: (com.example.salmaflorist.Product) -> Unit
 ): RecyclerView.Adapter<HomeProductAdapter.ProductViewHolder>() {
     class ProductViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val ivImage: ImageView = view.findViewById(R.id.ivProductImage)
@@ -40,6 +41,8 @@ class HomeProductAdapter(
         holder.tvName.text = product.name
         holder.tvDesc.text = product.description
         holder.tvBadge.text = product.category.name
+
+        holder.itemView.setOnClickListener { onItemClick(product) }
 
         val localeID = Locale("in", "ID")
         val formatter =
