@@ -8,13 +8,14 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.salmaflorist.DBOpenHelper
 import com.example.salmaflorist.R
+import com.example.salmaflorist.model.Product
 import java.text.NumberFormat
 import java.util.Locale
 
 class HomeProductAdapter(
-    private val products: List<com.example.salmaflorist.Product>,
+    private val products: List<Product>,
     private val dbHelper: DBOpenHelper,
-    private val onItemClick: (com.example.salmaflorist.Product) -> Unit
+    private val onItemClick: (Product) -> Unit
 ): RecyclerView.Adapter<HomeProductAdapter.ProductViewHolder>() {
     class ProductViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val ivImage: ImageView = view.findViewById(R.id.ivProductImage)

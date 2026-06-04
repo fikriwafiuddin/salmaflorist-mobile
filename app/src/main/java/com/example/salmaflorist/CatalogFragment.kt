@@ -12,6 +12,7 @@ import android.widget.ArrayAdapter
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.salmaflorist.adapter.CatalogProductAdapter
 import com.example.salmaflorist.databinding.FragmentCatalogBinding
+import com.example.salmaflorist.model.Product
 
 class CatalogFragment : Fragment() {
     private var _binding: FragmentCatalogBinding? = null

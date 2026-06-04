@@ -1,4 +1,4 @@
-package com.example.salmaflorist
+package com.example.salmaflorist.model
 
 import java.io.Serializable
 

@@ -7,8 +7,8 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.salmaflorist.DBOpenHelper
-import com.example.salmaflorist.Product
 import com.example.salmaflorist.R
+import com.example.salmaflorist.model.Product
 import java.text.NumberFormat
 import java.util.Locale
 

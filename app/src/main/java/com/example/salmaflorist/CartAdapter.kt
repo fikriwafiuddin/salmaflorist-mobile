@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.salmaflorist.databinding.ItemCartBinding
 import java.text.NumberFormat
 import java.util.Locale
+import com.example.salmaflorist.model.CartItem
 
 class CartAdapter(
     private var items: ArrayList<CartItem>,

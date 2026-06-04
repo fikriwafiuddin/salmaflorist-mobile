@@ -1,4 +1,4 @@
-package com.example.salmaflorist
+package com.example.salmaflorist.model
 
 import java.io.Serializable
 
@@ -10,5 +10,5 @@ data class Product (
     val description: String,
     val weight: Int,
     val image: String,
-    val category: Category
+    val category: com.example.salmaflorist.model.Category
 ) : Serializable

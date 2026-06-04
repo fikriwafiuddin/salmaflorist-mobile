@@ -1,4 +1,4 @@
-package com.example.salmaflorist
+package com.example.salmaflorist.model
 
 data class CartItem(
     val cartId: Int,

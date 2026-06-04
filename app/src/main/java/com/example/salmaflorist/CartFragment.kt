@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.salmaflorist.databinding.FragmentCartBinding
+import com.example.salmaflorist.model.CartItem
 
 class CartFragment : Fragment() {
     private var _binding: FragmentCartBinding? = null

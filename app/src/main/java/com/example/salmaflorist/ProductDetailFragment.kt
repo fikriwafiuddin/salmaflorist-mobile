@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import com.example.salmaflorist.databinding.FragmentProductDetailBinding
 import java.text.NumberFormat
 import java.util.Locale
+import com.example.salmaflorist.model.Product
 
 class ProductDetailFragment : Fragment() {
     private var _binding: FragmentProductDetailBinding? = null
