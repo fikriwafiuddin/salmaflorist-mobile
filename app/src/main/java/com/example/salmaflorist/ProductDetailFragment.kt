@@ -15,6 +15,8 @@ class ProductDetailFragment : Fragment() {
     private var _binding: FragmentProductDetailBinding? = null
     private val binding get() = _binding!!
     private var product: Product? = null
+    private var quantity = 1
+    private lateinit var db: DBOpenHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,6 +30,7 @@ class ProductDetailFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        db = (requireActivity() as MainActivity).getObject()
         _binding = FragmentProductDetailBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -58,9 +61,24 @@ class ProductDetailFragment : Fragment() {
             parentFragmentManager.popBackStack()
         }
 
+        binding.btnIncrement.setOnClickListener {
+            quantity++
+            binding.tvQuantity.text = quantity.toString()
+        }
+
+        binding.btnDecrement.setOnClickListener {
+            if (quantity > 1) {
+                quantity--
+                binding.tvQuantity.text = quantity.toString()
+            }
+        }
+
         binding.btnAddToCart.setOnClickListener {
-            // Implementation for Add to Cart
-            Toast.makeText(requireContext(), "Ditambahkan ke keranjang", Toast.LENGTH_SHORT).show()
+            product?.let { p ->
+                db.addToCart(p.id, quantity)
+                Toast.makeText(requireContext(), "${p.name} ($quantity) ditambahkan ke keranjang", Toast.LENGTH_SHORT).show()
+                parentFragmentManager.popBackStack()
+            }
         }
     }
 
