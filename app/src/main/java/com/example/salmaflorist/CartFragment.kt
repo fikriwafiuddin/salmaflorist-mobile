@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
+import android.content.Intent
 import com.example.salmaflorist.databinding.FragmentCartBinding
 import com.example.salmaflorist.model.CartItem
 
@@ -23,6 +24,11 @@ class CartFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         loadCart()
+
+        binding.btnCheckout.setOnClickListener {
+            val intent = Intent(requireContext(), PaymentActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     private fun loadCart() {
