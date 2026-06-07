@@ -24,28 +24,33 @@ class RegisterFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         dbHelper = DBOpenHelper(requireContext())
 
-//        binding.btnRegister.setOnClickListener {
-//            val email = binding.etEmail.text.toString()
-//            val password = binding.etPassword.text.toString()
-//            val nama = binding.etNama.text.toString()
-//
-//            if (email.isEmpty() || password.isEmpty() || nama.isEmpty()) {
-//                Toast.makeText(requireContext(), "Semua kolom harus diisi!", Toast.LENGTH_SHORT).show()
-//            } else {
-//                // Kamu perlu menambahkan fungsi addUser di DBOpenHelper-mu
-//                // Gunakan dbHelper (huruf kecil), bukan DBOpenHelper (nama class)
-//                val success = dbHelper.addUser(email, password, nama)
-//                if (success) {
-//                    Toast.makeText(requireContext(), "Daftar Berhasil! Silakan Login", Toast.LENGTH_SHORT).show()
-//                    // Kembali ke Login
-//                    parentFragmentManager.popBackStack()
-//                } else {
-//                    Toast.makeText(requireContext(), "Pendaftaran Gagal!", Toast.LENGTH_SHORT).show()
-//                }
-//            }
-//        }
+        binding.tvLogin.setOnClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainer, LoginFragment())
+                .commit()
+        }
+
+        binding.btnRegister.setOnClickListener {
+            val nama = binding.etNama.text.toString().trim()
+            val email = binding.etEmail.text.toString().trim()
+            val password = binding.etPassword.text.toString().trim()
+
+            if (nama.isEmpty() || email.isEmpty() || password.isEmpty()) {
+                Toast.makeText(requireContext(), "Semua field harus diisi!", Toast.LENGTH_SHORT).show()
+            } else {
+                if (dbHelper.addUser(nama, email, password)) {
+                    Toast.makeText(requireContext(), "Registrasi Berhasil!", Toast.LENGTH_SHORT).show()
+                    parentFragmentManager.beginTransaction()
+                        .replace(R.id.fragmentContainer, LoginFragment())
+                        .commit()
+                } else {
+                    Toast.makeText(requireContext(), "Registrasi Gagal! Email mungkin sudah digunakan.", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
     override fun onDestroyView() {

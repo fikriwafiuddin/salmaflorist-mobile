@@ -25,12 +25,16 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
     lateinit var ft: FragmentTransaction
 
     lateinit var db: DBOpenHelper
+    private lateinit var sessionManager: SessionManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        db = DBOpenHelper(this)
+        sessionManager = SessionManager(this)
 
         binding.bottomNavigation.setOnItemSelectedListener(this)
         binding.bottomNavigation.itemIconTintList = null
@@ -40,15 +44,32 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
         fragCart = CartFragment()
         fragProfile = ProfileFragment()
 
-        db = DBOpenHelper(this)
-
         if (savedInstanceState == null) {
-            binding.bottomNavigation.selectedItemId = R.id.nav_home
-
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.fragmentContainer, fragHome)
-                .commit()
+            if (!sessionManager.isLoggedIn()) {
+                loadLoginFragment()
+            } else {
+                showHomeFragment()
+            }
         }
+    }
+
+    private fun loadLoginFragment() {
+        binding.bottomNavigation.visibility = View.GONE
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, LoginFragment())
+            .commit()
+    }
+
+    private fun showHomeFragment() {
+        binding.bottomNavigation.visibility = View.VISIBLE
+        binding.bottomNavigation.selectedItemId = R.id.nav_home
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, fragHome)
+            .commit()
+    }
+
+    fun updateBottomNavVisibility(isVisible: Boolean) {
+        binding.bottomNavigation.visibility = if (isVisible) View.VISIBLE else View.GONE
     }
 
     fun getObject(): DBOpenHelper {

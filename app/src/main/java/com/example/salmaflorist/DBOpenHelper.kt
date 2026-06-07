@@ -7,13 +7,14 @@ import android.database.sqlite.SQLiteOpenHelper
 import com.example.salmaflorist.model.Product
 import com.example.salmaflorist.model.Category
 import com.example.salmaflorist.model.CartItem
+import com.example.salmaflorist.model.User
 
 class DBOpenHelper(context: Context) :
     SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
     companion object {
         const val DATABASE_NAME = "salmaflorist"
-        const val DATABASE_VERSION = 1
+        const val DATABASE_VERSION = 2
 
         // TABLE NAMES
         const val TABLE_CATEGORIES = "categories"
@@ -34,6 +35,12 @@ class DBOpenHelper(context: Context) :
         const val TABLE_CART_ITEMS = "cart_items"
         const val TABLE_ORDERS = "orders"
         const val TABLE_ORDER_ITEMS = "order_items"
+
+        const val TABLE_USERS = "users"
+        const val USER_ID = "id"
+        const val USER_NAME = "name"
+        const val USER_EMAIL = "email"
+        const val USER_PASSWORD = "password"
     }
 
     override fun onCreate(db: SQLiteDatabase) {
@@ -120,11 +127,24 @@ class DBOpenHelper(context: Context) :
             )
         """.trimIndent()
 
+        // =========================
+        // USERS
+        // =========================
+        val createUsers = """
+            CREATE TABLE $TABLE_USERS (
+                $USER_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                $USER_NAME TEXT,
+                $USER_EMAIL TEXT UNIQUE,
+                $USER_PASSWORD TEXT
+            )
+        """.trimIndent()
+
         db.execSQL(createCategories)
         db.execSQL(createProducts)
         db.execSQL(createCartItems)
         db.execSQL(createOrders)
         db.execSQL(createOrderItems)
+        db.execSQL(createUsers)
 
         seedCategories(db)
         seedProducts(db)
@@ -234,6 +254,7 @@ class DBOpenHelper(context: Context) :
         oldVersion: Int,
         newVersion: Int
     ) {
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_USERS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_ORDER_ITEMS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_ORDERS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_CART_ITEMS")
@@ -241,6 +262,45 @@ class DBOpenHelper(context: Context) :
         db.execSQL("DROP TABLE IF EXISTS $TABLE_CATEGORIES")
 
         onCreate(db)
+    }
+
+    // =========================
+    // USER METHODS
+    // =========================
+    fun addUser(name: String, email: String, password: String): Boolean {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put(USER_NAME, name)
+            put(USER_EMAIL, email)
+            put(USER_PASSWORD, password)
+        }
+        val result = db.insert(TABLE_USERS, null, values)
+        return result != -1L
+    }
+
+    fun checkUser(email: String, password: String): Boolean {
+        val db = readableDatabase
+        val query = "SELECT * FROM $TABLE_USERS WHERE $USER_EMAIL = ? AND $USER_PASSWORD = ?"
+        val cursor = db.rawQuery(query, arrayOf(email, password))
+        val exists = cursor.count > 0
+        cursor.close()
+        return exists
+    }
+
+    fun getUserByEmail(email: String): User? {
+        val db = readableDatabase
+        val query = "SELECT * FROM $TABLE_USERS WHERE $USER_EMAIL = ?"
+        val cursor = db.rawQuery(query, arrayOf(email))
+        var user: User? = null
+        if (cursor.moveToFirst()) {
+            user = User(
+                id = cursor.getInt(cursor.getColumnIndexOrThrow(USER_ID)),
+                name = cursor.getString(cursor.getColumnIndexOrThrow(USER_NAME)),
+                email = cursor.getString(cursor.getColumnIndexOrThrow(USER_EMAIL))
+            )
+        }
+        cursor.close()
+        return user
     }
 
     fun getAllCategories(): List<Category> {
