@@ -14,7 +14,7 @@ class DBOpenHelper(context: Context) :
 
     companion object {
         const val DATABASE_NAME = "salmaflorist"
-        const val DATABASE_VERSION = 2
+        const val DATABASE_VERSION = 3
 
         // TABLE NAMES
         const val TABLE_CATEGORIES = "categories"
@@ -38,7 +38,7 @@ class DBOpenHelper(context: Context) :
 
         const val TABLE_USERS = "users"
         const val USER_ID = "id"
-        const val USER_NAME = "name"
+        const val USER_NAME = "username"
         const val USER_EMAIL = "email"
         const val USER_PASSWORD = "password"
     }
@@ -267,10 +267,10 @@ class DBOpenHelper(context: Context) :
     // =========================
     // USER METHODS
     // =========================
-    fun addUser(name: String, email: String, password: String): Boolean {
+    fun addUser(username: String, email: String, password: String): Boolean {
         val db = writableDatabase
         val values = ContentValues().apply {
-            put(USER_NAME, name)
+            put(USER_NAME, username)
             put(USER_EMAIL, email)
             put(USER_PASSWORD, password)
         }
@@ -295,7 +295,7 @@ class DBOpenHelper(context: Context) :
         if (cursor.moveToFirst()) {
             user = User(
                 id = cursor.getInt(cursor.getColumnIndexOrThrow(USER_ID)),
-                name = cursor.getString(cursor.getColumnIndexOrThrow(USER_NAME)),
+                username = cursor.getString(cursor.getColumnIndexOrThrow(USER_NAME)),
                 email = cursor.getString(cursor.getColumnIndexOrThrow(USER_EMAIL))
             )
         }
@@ -512,17 +512,47 @@ class DBOpenHelper(context: Context) :
         val list = ArrayList<CartItem>()
         val db = readableDatabase
         val query = """
-        SELECT c.id, c.product_id, p.$PROD_NAME, p.$PROD_PRICE, p.$PROD_IMAGE, c.quantity
+        SELECT 
+            c.id, 
+            c.product_id, 
+            c.quantity,
+            p.$PROD_CATEGORY_ID,
+            p.$PROD_NAME,
+            p.$PROD_PRICE,
+            p.$PROD_DESCRIPTION,
+            p.$PROD_WEIGHT,
+            p.$PROD_IMAGE,
+            cat.$CAT_ID,
+            cat.$CAT_NAME
         FROM $TABLE_CART_ITEMS c
         JOIN $TABLE_PRODUCTS p ON c.product_id = p.$PROD_ID
+        JOIN $TABLE_CATEGORIES cat ON p.$PROD_CATEGORY_ID = cat.$CAT_ID
     """.trimIndent()
 
         val cursor = db.rawQuery(query, null)
         if (cursor.moveToFirst()) {
             do {
+                val category = Category(
+                    id = cursor.getInt(9),
+                    name = cursor.getString(10)
+                )
+
+                val product = Product(
+                    id = cursor.getInt(1),
+                    categoryId = cursor.getInt(3),
+                    name = cursor.getString(4),
+                    price = cursor.getInt(5),
+                    description = cursor.getString(6),
+                    weight = cursor.getInt(7),
+                    image = cursor.getString(8),
+                    category = category
+                )
+
                 list.add(CartItem(
-                    cursor.getInt(0), cursor.getInt(1), cursor.getString(2),
-                    cursor.getInt(3), cursor.getString(4), cursor.getInt(5)
+                    cartId = cursor.getInt(0),
+                    productId = cursor.getInt(1),
+                    quantity = cursor.getInt(2),
+                    product = product
                 ))
             } while (cursor.moveToNext())
         }

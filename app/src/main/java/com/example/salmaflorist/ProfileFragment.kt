@@ -41,7 +41,7 @@ class ProfileFragment : Fragment() {
             if (email != null) {
                 val user = dbHelper.getUserByEmail(email)
                 if (user != null) {
-                    binding.tvUserName.text = user.name
+                    binding.tvUserName.text = user.username
                     binding.tvUserEmail.text = user.email
                 }
             }

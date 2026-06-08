@@ -35,7 +35,7 @@ class CartAdapter(
 
         holder.binding.apply {
 
-            tvProductNameCart.text = item.productName
+            tvProductNameCart.text = item.product?.name
 
             tvQuantity.text = item.quantity.toString()
 
@@ -45,7 +45,7 @@ class CartAdapter(
                 )
 
             tvProductPriceCart.text =
-                formatter.format(item.productPrice)
+                formatter.format(item.product?.price ?: 0)
                     .replace("Rp", "Rp ")
 
             // =========================
@@ -56,7 +56,7 @@ class CartAdapter(
 
             val imageResId =
                 context.resources.getIdentifier(
-                    item.productImage,
+                    item.product?.image,
                     "drawable",
                     context.packageName
                 )

@@ -3,8 +3,6 @@ package com.example.salmaflorist.model
 data class CartItem(
     val cartId: Int,
     val productId: Int,
-    val productName: String,
-    val productPrice: Int,
-    val productImage: String,
-    var quantity: Int
+    var quantity: Int,
+    val product: Product? = null
 )

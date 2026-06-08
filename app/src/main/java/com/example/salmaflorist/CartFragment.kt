@@ -51,7 +51,7 @@ class CartFragment : Fragment() {
     }
 
     private fun calculateTotal(items: List<CartItem>) {
-        val total = items.sumOf { it.productPrice * it.quantity }
+        val total = items.sumOf { (it.product?.price ?: 0) * it.quantity }
         val formatter = java.text.NumberFormat.getCurrencyInstance(java.util.Locale("in", "ID"))
         binding.tvTotalPrice.text = formatter.format(total).replace("Rp", "Rp ")
     }
