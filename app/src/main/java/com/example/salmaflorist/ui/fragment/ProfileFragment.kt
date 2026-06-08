@@ -11,6 +11,9 @@ import com.example.salmaflorist.ui.activity.MainActivity
 import com.example.salmaflorist.util.SessionManager
 import com.example.salmaflorist.databinding.FragmentProfileBinding
 import com.example.salmaflorist.ui.fragment.LoginFragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.salmaflorist.adapter.OrderAdapter
+import com.google.android.material.chip.Chip
 
 class ProfileFragment : Fragment() {
 
@@ -36,6 +39,35 @@ class ProfileFragment : Fragment() {
 
         checkSession()
         setupLogout()
+        setupOrderHistory()
+        setupFilters()
+    }
+
+    private fun setupFilters() {
+        binding.cgStatusFilter.setOnCheckedStateChangeListener { group, checkedIds ->
+            if (checkedIds.isNotEmpty()) {
+                val chip = group.findViewById<Chip>(checkedIds[0])
+                val status = chip.text.toString()
+                setupOrderHistory(status)
+            }
+        }
+    }
+
+    private fun setupOrderHistory(statusFilter: String? = "Semua") {
+        if (sessionManager.isLoggedIn()) {
+            val orders = dbHelper.getOrders(statusFilter)
+            if (orders.isNotEmpty()) {
+                binding.tvEmptyOrders.visibility = View.GONE
+                binding.rvOrderHistory.visibility = View.VISIBLE
+                
+                binding.rvOrderHistory.layoutManager = LinearLayoutManager(requireContext())
+                binding.rvOrderHistory.adapter = OrderAdapter(orders)
+                binding.rvOrderHistory.isNestedScrollingEnabled = false
+            } else {
+                binding.tvEmptyOrders.visibility = View.VISIBLE
+                binding.rvOrderHistory.visibility = View.GONE
+            }
+        }
     }
 
     private fun checkSession() {

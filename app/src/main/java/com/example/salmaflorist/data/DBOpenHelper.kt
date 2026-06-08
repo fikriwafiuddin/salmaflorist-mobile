@@ -11,7 +11,7 @@ class DBOpenHelper(context: Context) :
 
     companion object {
         const val DATABASE_NAME = "salmaflorist"
-        const val DATABASE_VERSION = 3
+        const val DATABASE_VERSION = 5
 
         // TABLE NAMES
         const val TABLE_CATEGORIES = "categories"
@@ -145,6 +145,7 @@ class DBOpenHelper(context: Context) :
 
         seedCategories(db)
         seedProducts(db)
+        seedOrders(db)
     }
 
     private fun seedCategories(db: SQLiteDatabase) {
@@ -243,6 +244,31 @@ class DBOpenHelper(context: Context) :
         values.put(PROD_IMAGE, image)
 
         db.insert(TABLE_PRODUCTS, null, values)
+    }
+
+    private fun seedOrders(db: SQLiteDatabase) {
+        val orders = listOf(
+            Triple("INV-20231001-001", 150000, "PENDING"),
+            Triple("INV-20231002-002", 275000, "PAID"),
+            Triple("INV-20231003-003", 500000, "DELIVERED"),
+            Triple("INV-20231004-004", 320000, "PROCESSING"),
+            Triple("INV-20231005-005", 280000, "COMPLETED"),
+            Triple("INV-20231006-006", 350000, "CANCELLED")
+        )
+
+        for ((invoice, amount, status) in orders) {
+            val values = ContentValues().apply {
+                put("invoice_number", invoice)
+                put("customer_name", "User Dummy")
+                put("whatsapp_number", "08123456789")
+                put("address_detail", "Jl. Mawar No. 123")
+                put("total_amount", amount)
+                put("status", status)
+                put("shipping_method", "Regular")
+                put("notes", "Dummy Order")
+            }
+            db.insert(TABLE_ORDERS, null, values)
+        }
     }
 
 
@@ -572,5 +598,65 @@ class DBOpenHelper(context: Context) :
     fun deleteCartItem(cartId: Int) {
         val db = writableDatabase
         db.delete(TABLE_CART_ITEMS, "id = ?", arrayOf(cartId.toString()))
+    }
+
+    // =========================
+    // ORDER METHODS
+    // =========================
+    fun getOrders(statusFilter: String? = null): List<Order> {
+        val list = mutableListOf<Order>()
+        val db = readableDatabase
+        
+        var query = "SELECT * FROM $TABLE_ORDERS"
+        val args = mutableListOf<String>()
+        
+        if (!statusFilter.isNullOrEmpty() && statusFilter != "Semua") {
+            query += " WHERE status = ?"
+            args.add(statusFilter.uppercase())
+        }
+        
+        query += " ORDER BY created_at DESC"
+        
+        val cursor = db.rawQuery(query, if (args.isEmpty()) null else args.toTypedArray())
+
+        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
+
+        if (cursor.moveToFirst()) {
+            do {
+                val statusStr = cursor.getString(cursor.getColumnIndexOrThrow("status"))
+                val status = try {
+                    OrderStatus.valueOf(statusStr)
+                } catch (e: Exception) {
+                    OrderStatus.PENDING
+                }
+
+                val dateStr = cursor.getString(cursor.getColumnIndexOrThrow("created_at"))
+                val date = try {
+                    sdf.parse(dateStr) ?: java.util.Date()
+                } catch (e: Exception) {
+                    java.util.Date()
+                }
+
+                list.add(Order(
+                    id = cursor.getInt(cursor.getColumnIndexOrThrow("id")),
+                    userId = 0, // Placeholder as not in table
+                    addressId = 0, // Placeholder
+                    invoiceNumber = cursor.getString(cursor.getColumnIndexOrThrow("invoice_number")),
+                    shippingNumber = "", // Placeholder
+                    status = status,
+                    totalAmount = cursor.getInt(cursor.getColumnIndexOrThrow("total_amount")),
+                    shippingCost = 0, // Placeholder
+                    courierName = "", // Placeholder
+                    courierCode = "", // Placeholder
+                    courierService = "", // Placeholder
+                    etd = "", // Placeholder
+                    deliveryStartTime = null,
+                    deliveryEndTime = null,
+                    createdAt = date
+                ))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return list
     }
 }
