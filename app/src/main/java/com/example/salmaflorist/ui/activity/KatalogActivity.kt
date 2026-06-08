@@ -1,10 +1,13 @@
-package com.example.salmaflorist
+package com.example.salmaflorist.ui.activity
 
 import android.os.Bundle
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.salmaflorist.data.DBOpenHelper
+import com.example.salmaflorist.model.Produk
+import com.example.salmaflorist.R
 
 class KatalogActivity : AppCompatActivity() {
 

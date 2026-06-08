@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-04-14T08:09:08.051305600Z">
+        <DropdownSelection timestamp="2026-06-08T12:31:35.046806700Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\ASUS\.android\avd\Medium_Phone.avd" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=D:\App\Android_Emulator\avd\Oppo_A53.avd" />
             </handle>
           </Target>
         </DropdownSelection>

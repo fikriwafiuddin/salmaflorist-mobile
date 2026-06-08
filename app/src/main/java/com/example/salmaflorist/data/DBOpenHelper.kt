@@ -1,13 +1,10 @@
-package com.example.salmaflorist
+package com.example.salmaflorist.data
 
 import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import com.example.salmaflorist.model.Product
-import com.example.salmaflorist.model.Category
-import com.example.salmaflorist.model.CartItem
-import com.example.salmaflorist.model.User
+import com.example.salmaflorist.model.*
 
 class DBOpenHelper(context: Context) :
     SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {

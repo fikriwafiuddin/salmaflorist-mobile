@@ -1,4 +1,4 @@
-package com.example.salmaflorist
+package com.example.salmaflorist.ui.fragment
 
 import android.content.Intent
 import android.net.Uri
@@ -9,9 +9,14 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.salmaflorist.R
+import com.example.salmaflorist.data.DBOpenHelper
+import com.example.salmaflorist.ui.activity.MainActivity
 import com.example.salmaflorist.adapter.HomeProductAdapter
 import com.example.salmaflorist.databinding.FragmentHomeBinding
 import com.example.salmaflorist.model.Product
+import com.example.salmaflorist.ui.fragment.CatalogFragment
+import com.example.salmaflorist.ui.fragment.ProductDetailFragment
 
 class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null

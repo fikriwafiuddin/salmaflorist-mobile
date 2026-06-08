@@ -1,4 +1,4 @@
-package com.example.salmaflorist
+package com.example.salmaflorist.util
 
 import android.content.Context
 import android.content.SharedPreferences

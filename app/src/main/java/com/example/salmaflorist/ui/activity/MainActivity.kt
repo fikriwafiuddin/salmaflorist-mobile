@@ -1,4 +1,4 @@
-package com.example.salmaflorist
+package com.example.salmaflorist.ui.activity
 
 import android.content.Intent
 import android.database.sqlite.SQLiteDatabase
@@ -10,8 +10,16 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
+import com.example.salmaflorist.R
 import com.example.salmaflorist.databinding.ActivityMainBinding
+import com.example.salmaflorist.ui.fragment.HomeFragment
+import com.example.salmaflorist.ui.fragment.CatalogFragment
+import com.example.salmaflorist.ui.fragment.CartFragment
+import com.example.salmaflorist.ui.fragment.ProfileFragment
+import com.example.salmaflorist.data.DBOpenHelper
+import com.example.salmaflorist.util.SessionManager
 import com.google.android.material.navigation.NavigationBarView
+import com.example.salmaflorist.ui.fragment.LoginFragment
 
 class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListener {
 

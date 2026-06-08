@@ -1,4 +1,4 @@
-package com.example.salmaflorist
+package com.example.salmaflorist.ui.fragment
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -6,6 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.example.salmaflorist.R
+import com.example.salmaflorist.data.DBOpenHelper
+import com.example.salmaflorist.ui.activity.MainActivity
 import com.example.salmaflorist.databinding.FragmentProductDetailBinding
 import java.text.NumberFormat
 import java.util.Locale

@@ -1,4 +1,4 @@
-package com.example.salmaflorist
+package com.example.salmaflorist.adapter
 
 import android.view.LayoutInflater
 import android.view.View
@@ -6,6 +6,8 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.salmaflorist.R
+import com.example.salmaflorist.model.Produk
 import java.text.NumberFormat
 import java.util.Locale
 

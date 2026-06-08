@@ -1,4 +1,4 @@
-package com.example.salmaflorist
+package com.example.salmaflorist.ui.fragment
 
 import android.os.Bundle
 import android.text.Editable
@@ -10,9 +10,13 @@ import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.recyclerview.widget.GridLayoutManager
+import com.example.salmaflorist.R
+import com.example.salmaflorist.data.DBOpenHelper
+import com.example.salmaflorist.ui.activity.MainActivity
 import com.example.salmaflorist.adapter.CatalogProductAdapter
 import com.example.salmaflorist.databinding.FragmentCatalogBinding
 import com.example.salmaflorist.model.Product
+import com.example.salmaflorist.ui.fragment.ProductDetailFragment
 
 class CatalogFragment : Fragment() {
     private var _binding: FragmentCatalogBinding? = null

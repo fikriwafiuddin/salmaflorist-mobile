@@ -1,4 +1,4 @@
-package com.example.salmaflorist
+package com.example.salmaflorist.ui.fragment
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -7,6 +7,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import android.content.Intent
+import com.example.salmaflorist.data.DBOpenHelper
+import com.example.salmaflorist.ui.activity.MainActivity
+import com.example.salmaflorist.ui.activity.PaymentActivity
+import com.example.salmaflorist.adapter.CartAdapter
 import com.example.salmaflorist.databinding.FragmentCartBinding
 import com.example.salmaflorist.model.CartItem
 

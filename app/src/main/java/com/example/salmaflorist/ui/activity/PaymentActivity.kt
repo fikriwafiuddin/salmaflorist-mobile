@@ -1,4 +1,4 @@
-package com.example.salmaflorist
+package com.example.salmaflorist.ui.activity
 
 import android.os.Bundle
 import android.widget.ArrayAdapter

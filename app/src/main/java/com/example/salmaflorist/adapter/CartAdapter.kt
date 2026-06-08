@@ -1,9 +1,11 @@
-package com.example.salmaflorist
+package com.example.salmaflorist.adapter
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.example.salmaflorist.R
+import com.example.salmaflorist.data.DBOpenHelper
 import com.example.salmaflorist.databinding.ItemCartBinding
 import java.text.NumberFormat
 import java.util.Locale

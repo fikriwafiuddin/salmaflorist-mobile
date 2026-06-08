@@ -10,18 +10,18 @@
         android:theme="@style/Theme.SalmaFlorist">
 
         <activity
-            android:name=".KatalogActivity"
+            android:name=".ui.activity.KatalogActivity"
             android:exported="false"
             android:theme="@style/Theme.SalmaFlorist" />
 
         <activity
-            android:name=".PaymentActivity"
+            android:name=".ui.activity.PaymentActivity"
             android:exported="false"
             android:label="Pembayaran"
             android:theme="@style/Theme.SalmaFlorist" />
 
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.activity.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

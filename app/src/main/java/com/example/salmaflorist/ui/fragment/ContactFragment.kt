@@ -1,22 +1,22 @@
-package com.example.salmaflorist
+package com.example.salmaflorist.ui.fragment
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.example.salmaflorist.databinding.FragmentAboutBinding
+import com.example.salmaflorist.databinding.FragmentContactBinding
 
-class AboutFragment : Fragment() {
+class ContactFragment : Fragment() {
 
-    private var _binding: FragmentAboutBinding? = null
+    private var _binding: FragmentContactBinding? = null
     private val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentAboutBinding.inflate(inflater, container, false)
+        _binding = FragmentContactBinding.inflate(inflater, container, false)
         return binding.root
     }
 
