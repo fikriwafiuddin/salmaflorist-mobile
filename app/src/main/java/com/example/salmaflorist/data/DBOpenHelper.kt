@@ -11,10 +11,11 @@ class DBOpenHelper(context: Context) :
 
     companion object {
         const val DATABASE_NAME = "salmaflorist"
-        const val DATABASE_VERSION = 5
+        const val DATABASE_VERSION = 7
 
         // TABLE NAMES
         const val TABLE_CATEGORIES = "categories"
+        const val TABLE_ADDRESSES = "addresses"
 
         const val CAT_ID = "id"
         const val CAT_NAME = "name"
@@ -92,15 +93,41 @@ class DBOpenHelper(context: Context) :
         val createOrders = """
             CREATE TABLE $TABLE_ORDERS (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                address_id INTEGER,
                 invoice_number VARCHAR UNIQUE,
+                shipping_number VARCHAR,
+                status TEXT,
+                total_amount INTEGER,
+                shipping_cost INTEGER,
+                courier_name VARCHAR,
+                courier_code VARCHAR,
+                courier_service VARCHAR,
+                etd VARCHAR,
+                delivery_start_time DATETIME,
+                delivery_end_time DATETIME,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (address_id) REFERENCES $TABLE_ADDRESSES(id)
+            )
+        """.trimIndent()
+
+        // =========================
+        // ADDRESSES
+        // =========================
+        val createAddresses = """
+            CREATE TABLE $TABLE_ADDRESSES (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
                 customer_name VARCHAR,
                 whatsapp_number VARCHAR,
                 address_detail TEXT,
-                total_amount INTEGER,
-                status TEXT,
-                shipping_method TEXT,
-                notes TEXT,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                province_id INTEGER,
+                province_name VARCHAR,
+                city_id INTEGER,
+                city_name VARCHAR,
+                district_id INTEGER,
+                district_name VARCHAR,
+                postal_code VARCHAR
             )
         """.trimIndent()
 
@@ -139,13 +166,32 @@ class DBOpenHelper(context: Context) :
         db.execSQL(createCategories)
         db.execSQL(createProducts)
         db.execSQL(createCartItems)
+        db.execSQL(createAddresses)
         db.execSQL(createOrders)
         db.execSQL(createOrderItems)
         db.execSQL(createUsers)
 
         seedCategories(db)
         seedProducts(db)
+        seedAddresses(db)
         seedOrders(db)
+    }
+
+    private fun seedAddresses(db: SQLiteDatabase) {
+        val values = ContentValues().apply {
+            put("user_id", 0)
+            put("customer_name", "User Dummy")
+            put("whatsapp_number", "08123456789")
+            put("address_detail", "Jl. Mawar No. 123")
+            put("province_id", 1)
+            put("province_name", "Jawa Barat")
+            put("city_id", 1)
+            put("city_name", "Bandung")
+            put("district_id", 1)
+            put("district_name", "Coblong")
+            put("postal_code", "40132")
+        }
+        db.insert(TABLE_ADDRESSES, null, values)
     }
 
     private fun seedCategories(db: SQLiteDatabase) {
@@ -258,16 +304,36 @@ class DBOpenHelper(context: Context) :
 
         for ((invoice, amount, status) in orders) {
             val values = ContentValues().apply {
+                put("user_id", 1)
+                put("address_id", 1)
                 put("invoice_number", invoice)
-                put("customer_name", "User Dummy")
-                put("whatsapp_number", "08123456789")
-                put("address_detail", "Jl. Mawar No. 123")
-                put("total_amount", amount)
+                put("shipping_number", "SHIP-${invoice.substringAfterLast("-")}")
                 put("status", status)
-                put("shipping_method", "Regular")
-                put("notes", "Dummy Order")
+                put("total_amount", amount)
+                put("shipping_cost", 15000)
+                put("courier_name", "JNE")
+                put("courier_code", "jne")
+                put("courier_service", "REG")
+                put("etd", "2-3 Hari")
             }
-            db.insert(TABLE_ORDERS, null, values)
+            val orderId = db.insert(TABLE_ORDERS, null, values)
+            
+            // Seed Order Items for each order
+            val items = listOf(
+                Triple(1, 1, 150000), // product_id, quantity, price
+                Triple(2, 1, 270000)
+            )
+            
+            for ((prodId, qty, price) in items) {
+                val itemValues = ContentValues().apply {
+                    put("product_id", prodId)
+                    put("order_id", orderId)
+                    put("quantity", qty)
+                    put("unit_price", price)
+                    put("subtotal", qty * price)
+                }
+                db.insert(TABLE_ORDER_ITEMS, null, itemValues)
+            }
         }
     }
 
@@ -280,6 +346,7 @@ class DBOpenHelper(context: Context) :
         db.execSQL("DROP TABLE IF EXISTS $TABLE_USERS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_ORDER_ITEMS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_ORDERS")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_ADDRESSES")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_CART_ITEMS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_PRODUCTS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_CATEGORIES")
@@ -639,17 +706,17 @@ class DBOpenHelper(context: Context) :
 
                 list.add(Order(
                     id = cursor.getInt(cursor.getColumnIndexOrThrow("id")),
-                    userId = 0, // Placeholder as not in table
-                    addressId = 0, // Placeholder
+                    userId = cursor.getInt(cursor.getColumnIndexOrThrow("user_id")),
+                    addressId = cursor.getInt(cursor.getColumnIndexOrThrow("address_id")),
                     invoiceNumber = cursor.getString(cursor.getColumnIndexOrThrow("invoice_number")),
-                    shippingNumber = "", // Placeholder
+                    shippingNumber = cursor.getString(cursor.getColumnIndexOrThrow("shipping_number")) ?: "",
                     status = status,
                     totalAmount = cursor.getInt(cursor.getColumnIndexOrThrow("total_amount")),
-                    shippingCost = 0, // Placeholder
-                    courierName = "", // Placeholder
-                    courierCode = "", // Placeholder
-                    courierService = "", // Placeholder
-                    etd = "", // Placeholder
+                    shippingCost = cursor.getInt(cursor.getColumnIndexOrThrow("shipping_cost")),
+                    courierName = cursor.getString(cursor.getColumnIndexOrThrow("courier_name")) ?: "",
+                    courierCode = cursor.getString(cursor.getColumnIndexOrThrow("courier_code")) ?: "",
+                    courierService = cursor.getString(cursor.getColumnIndexOrThrow("courier_service")) ?: "",
+                    etd = cursor.getString(cursor.getColumnIndexOrThrow("etd")) ?: "",
                     deliveryStartTime = null,
                     deliveryEndTime = null,
                     createdAt = date
@@ -658,5 +725,106 @@ class DBOpenHelper(context: Context) :
         }
         cursor.close()
         return list
+    }
+
+    fun getOrderById(orderId: Int): Order? {
+        val db = readableDatabase
+        val cursor = db.rawQuery("SELECT * FROM $TABLE_ORDERS WHERE id = ?", arrayOf(orderId.toString()))
+        var order: Order? = null
+        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
+
+        if (cursor.moveToFirst()) {
+            val statusStr = cursor.getString(cursor.getColumnIndexOrThrow("status"))
+            val status = try { OrderStatus.valueOf(statusStr) } catch (e: Exception) { OrderStatus.PENDING }
+            val dateStr = cursor.getString(cursor.getColumnIndexOrThrow("created_at"))
+            val date = try { sdf.parse(dateStr) ?: java.util.Date() } catch (e: Exception) { java.util.Date() }
+
+            order = Order(
+                id = cursor.getInt(cursor.getColumnIndexOrThrow("id")),
+                userId = cursor.getInt(cursor.getColumnIndexOrThrow("user_id")),
+                addressId = cursor.getInt(cursor.getColumnIndexOrThrow("address_id")),
+                invoiceNumber = cursor.getString(cursor.getColumnIndexOrThrow("invoice_number")),
+                shippingNumber = cursor.getString(cursor.getColumnIndexOrThrow("shipping_number")) ?: "",
+                status = status,
+                totalAmount = cursor.getInt(cursor.getColumnIndexOrThrow("total_amount")),
+                shippingCost = cursor.getInt(cursor.getColumnIndexOrThrow("shipping_cost")),
+                courierName = cursor.getString(cursor.getColumnIndexOrThrow("courier_name")) ?: "",
+                courierCode = cursor.getString(cursor.getColumnIndexOrThrow("courier_code")) ?: "",
+                courierService = cursor.getString(cursor.getColumnIndexOrThrow("courier_service")) ?: "",
+                etd = cursor.getString(cursor.getColumnIndexOrThrow("etd")) ?: "",
+                deliveryStartTime = null,
+                deliveryEndTime = null,
+                createdAt = date
+            )
+        }
+        cursor.close()
+        return order
+    }
+
+    fun getOrderItems(orderId: Int): List<Pair<OrderItem, Product>> {
+        val list = mutableListOf<Pair<OrderItem, Product>>()
+        val db = readableDatabase
+        val query = """
+            SELECT oi.*, p.*, c.name as category_name
+            FROM $TABLE_ORDER_ITEMS oi
+            JOIN $TABLE_PRODUCTS p ON oi.product_id = p.id
+            JOIN $TABLE_CATEGORIES c ON p.category_id = c.id
+            WHERE oi.order_id = ?
+        """.trimIndent()
+        
+        val cursor = db.rawQuery(query, arrayOf(orderId.toString()))
+        if (cursor.moveToFirst()) {
+            do {
+                val category = Category(
+                    id = cursor.getInt(cursor.getColumnIndexOrThrow("category_id")),
+                    name = cursor.getString(cursor.getColumnIndexOrThrow("category_name"))
+                )
+                val product = Product(
+                    id = cursor.getInt(cursor.getColumnIndexOrThrow("product_id")),
+                    categoryId = cursor.getInt(cursor.getColumnIndexOrThrow("category_id")),
+                    name = cursor.getString(cursor.getColumnIndexOrThrow("name")),
+                    price = cursor.getInt(cursor.getColumnIndexOrThrow("price")),
+                    description = cursor.getString(cursor.getColumnIndexOrThrow("description")),
+                    weight = cursor.getInt(cursor.getColumnIndexOrThrow("weight")),
+                    image = cursor.getString(cursor.getColumnIndexOrThrow("image")),
+                    category = category
+                )
+                val item = OrderItem(
+                    id = cursor.getInt(cursor.getColumnIndexOrThrow("id")),
+                    orderId = cursor.getInt(cursor.getColumnIndexOrThrow("order_id")),
+                    productId = cursor.getInt(cursor.getColumnIndexOrThrow("product_id")),
+                    quantity = cursor.getInt(cursor.getColumnIndexOrThrow("quantity")),
+                    unitPrice = cursor.getInt(cursor.getColumnIndexOrThrow("unit_price")),
+                    subTotal = cursor.getInt(cursor.getColumnIndexOrThrow("subtotal"))
+                )
+                list.add(item to product)
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return list
+    }
+
+    fun getAddressById(addressId: Int): Address? {
+        val db = readableDatabase
+        val cursor = db.rawQuery("SELECT * FROM $TABLE_ADDRESSES WHERE id = ?", arrayOf(addressId.toString()))
+        var address: Address? = null
+        if (cursor.moveToFirst()) {
+            address = Address(
+                id = cursor.getInt(cursor.getColumnIndexOrThrow("id")),
+                user_id = cursor.getInt(cursor.getColumnIndexOrThrow("user_id")),
+                customerName = cursor.getString(cursor.getColumnIndexOrThrow("customer_name")),
+                whatsappNumber = cursor.getLong(cursor.getColumnIndexOrThrow("whatsapp_number")),
+                addressDetail = cursor.getString(cursor.getColumnIndexOrThrow("address_detail")),
+                provinceId = cursor.getInt(cursor.getColumnIndexOrThrow("province_id")),
+                provinceName = cursor.getString(cursor.getColumnIndexOrThrow("province_name")),
+                cityid = cursor.getInt(cursor.getColumnIndexOrThrow("city_id")),
+                cityName = cursor.getString(cursor.getColumnIndexOrThrow("city_name")),
+                districId = cursor.getInt(cursor.getColumnIndexOrThrow("district_id")),
+                districName = cursor.getString(cursor.getColumnIndexOrThrow("district_name")),
+                postalCode = cursor.getLong(cursor.getColumnIndexOrThrow("postal_code"))
+            )
+        }
+        cursor.close()
+        return address
     }
 }

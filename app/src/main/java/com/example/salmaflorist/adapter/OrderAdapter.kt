@@ -8,6 +8,8 @@ import com.example.salmaflorist.R
 import com.example.salmaflorist.databinding.ItemOrderBinding
 import com.example.salmaflorist.model.Order
 import com.example.salmaflorist.model.OrderStatus
+import android.content.Intent
+import com.example.salmaflorist.ui.activity.OrderDetailActivity
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -47,9 +49,15 @@ class OrderAdapter(private val orders: List<Order>) :
                 OrderStatus.PROCESSING -> R.drawable.bg_status_processing
                 OrderStatus.DELIVERED, OrderStatus.COMPLETED -> R.drawable.bg_status_delivered
                 OrderStatus.CANCELLED -> R.drawable.bg_status_cancelled
-                else -> R.drawable.bg_status_pending
             }
             tvStatus.setBackgroundResource(bgRes)
+        }
+
+        holder.itemView.setOnClickListener {
+            val intent = Intent(context, OrderDetailActivity::class.java).apply {
+                putExtra("ORDER_ID", order.id)
+            }
+            context.startActivity(intent)
         }
     }
 

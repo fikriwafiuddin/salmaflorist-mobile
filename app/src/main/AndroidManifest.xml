@@ -21,6 +21,12 @@
             android:theme="@style/Theme.SalmaFlorist" />
 
         <activity
+            android:name=".ui.activity.OrderDetailActivity"
+            android:exported="false"
+            android:label="Detail Pesanan"
+            android:theme="@style/Theme.SalmaFlorist" />
+
+        <activity
             android:name=".ui.activity.MainActivity"
             android:exported="true">
             <intent-filter>
