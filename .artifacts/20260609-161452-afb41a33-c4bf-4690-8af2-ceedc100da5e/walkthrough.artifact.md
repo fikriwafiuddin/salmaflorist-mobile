@@ -1,36 +1,32 @@
-# Walkthrough - Admin Role Features
+# Walkthrough - Admin Dashboard UI
 
-I have successfully implemented the Admin role features, including a dedicated dashboard, navigation, and logout functionality.
+I have implemented the Admin Dashboard with real-time statistics, a custom order chart, and a table of recent orders.
 
 ## Changes Made
 
-### 1. Database & Session Management
--   **[DBOpenHelper.kt](file:///D:/project/salmaflorist-mobile/app/src/main/java/com/example/salmaflorist/data/DBOpenHelper.kt)**: Added a `role` column to the `users` table and a default admin user (`admin@gmail.com` / `admin123`).
--   **[SessionManager.kt](file:///D:/project/salmaflorist-mobile/app/src/main/java/com/example/salmaflorist/util/SessionManager.kt)**: Updated to store and retrieve the user's role in SharedPreferences.
+### 1. Data Layer Updates
+- **[DBOpenHelper.kt](file:///D:/project/salmaflorist-mobile/app/src/main/java/com/example/salmaflorist/data/DBOpenHelper.kt)**: Added `getDashboardStats()`, `getOrdersLast7Days()`, and `getRecentOrders()`.
+- **Seed Data**: Updated to include mock orders for today and the past 7 days to populate the dashboard.
 
-### 2. Admin UI Components
--   **New Activity**: [AdminMainActivity.kt](file:///D:/project/salmaflorist-mobile/app/src/main/java/com/example/salmaflorist/ui/activity/AdminMainActivity.kt) serves as the main entry point for administrators, featuring its own Toolbar and Bottom Navigation.
--   **New Fragments**: Created empty fragments for all requested admin features:
-    -   `AdminDashboardFragment`
-    -   `AdminCategoriesFragment`
-    -   `AdminProductsFragment`
-    -   `AdminOrdersFragment`
-    -   `AdminReportsFragment`
--   **Navigation & Menus**:
-    -   [menu_admin_bottom.xml](file:///D:/project/salmaflorist-mobile/app/src/main/res/menu/menu_admin_bottom.xml): Bottom navigation for switching between admin fragments.
-    -   [menu_admin_options.xml](file:///D:/project/salmaflorist-mobile/app/src/main/res/menu/menu_admin_options.xml): Options menu in the Toolbar containing the Logout button.
+### 2. Custom Visualization
+- **[SimpleLineChartView.kt](file:///D:/project/salmaflorist-mobile/app/src/main/java/com/example/salmaflorist/ui/view/SimpleLineChartView.kt)**: Created a lightweight custom view to draw line charts without external dependencies.
 
-### 3. Navigation Logic
--   **[LoginFragment.kt](file:///D:/project/salmaflorist-mobile/app/src/main/java/com/example/salmaflorist/ui/fragment/LoginFragment.kt)**: Updated to check the user's role upon successful login and redirect to either `MainActivity` (for users) or `AdminMainActivity` (for admins).
--   **[MainActivity.kt](file:///D:/project/salmaflorist-mobile/app/src/main/java/com/example/salmaflorist/ui/activity/MainActivity.kt)**: Added a check during initialization to redirect logged-in admins to the `AdminMainActivity`.
+### 3. Dashboard UI
+- **[fragment_admin_dashboard.xml](file:///D:/project/salmaflorist-mobile/app/src/main/res/layout/fragment_admin_dashboard.xml)**: Implemented a responsive layout with:
+    - **Stats Cards**: Displays today's order count and total income.
+    - **Order Chart**: Visualizes the last 7 days of order activity.
+    - **Recent Orders**: A table-like list showing the 5 most recent transactions.
+- **[AdminDashboardFragment.kt](file:///D:/project/salmaflorist-mobile/app/src/main/java/com/example/salmaflorist/ui/fragment/admin/AdminDashboardFragment.kt)**: Logic to fetch and bind data to the UI components.
 
-## How to Test
-1.  **Admin Login**: Use email `admin@gmail.com` and password `admin123`.
-2.  **Navigation**: Click through the Bottom Navigation items to see the respective "Admin" placeholders.
-3.  **Logout**: Click the three dots (options menu) in the top-right corner and select "Logout" to return to the main entry point.
-4.  **User Login**: Regular users (or newly registered ones) will still see the standard shopping interface.
+### 4. Adapters
+- **[RecentOrderAdapter.kt](file:///D:/project/salmaflorist-mobile/app/src/main/java/com/example/salmaflorist/adapter/RecentOrderAdapter.kt)**: Efficiently binds recent order data to the dashboard table.
+
+## How to Verify
+1.  **Login as Admin**: Use `admin@gmail.com` / `admin123`.
+2.  **Dashboard**: Observe the statistics cards, the line chart, and the recent orders table.
+3.  **Accuracy**: Verify that "Total Pesanan Hari Ini" matches the count in the "Recent Orders" table (if all are from today).
 
 ## Verification Summary
--   Verified file structure and existence of all new components.
--   Performed static analysis on key files to ensure no critical errors.
--   Database schema updated successfully with default role handling.
+- Verified that all new data methods return correct mock data.
+- Checked the custom view rendering logic for the chart.
+- Confirmed the `RecyclerView` displays exactly 5 items (as per mock data).

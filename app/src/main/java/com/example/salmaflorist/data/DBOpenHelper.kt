@@ -306,16 +306,28 @@ class DBOpenHelper(context: Context) :
     }
 
     private fun seedOrders(db: SQLiteDatabase) {
-        val orders = listOf(
-            Triple("INV-20231001-001", 150000, "PENDING"),
-            Triple("INV-20231002-002", 275000, "PAID"),
-            Triple("INV-20231003-003", 500000, "DELIVERED"),
-            Triple("INV-20231004-004", 320000, "PROCESSING"),
-            Triple("INV-20231005-005", 280000, "COMPLETED"),
-            Triple("INV-20231006-006", 350000, "CANCELLED")
-        )
+        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
+        val cal = java.util.Calendar.getInstance()
 
-        for ((invoice, amount, status) in orders) {
+        val orders = mutableListOf<Triple<String, Int, String>>()
+        
+        // Orders for today
+        orders.add(Triple("INV-${sdf.format(cal.time).replace(":", "").replace("-", "").replace(" ", "")}-001", 150000, "PAID"))
+        orders.add(Triple("INV-${sdf.format(cal.time).replace(":", "").replace("-", "").replace(" ", "")}-002", 250000, "PENDING"))
+        
+        // Orders for last 6 days
+        for (i in 1..6) {
+            cal.add(java.util.Calendar.DAY_OF_YEAR, -1)
+            val dateStr = sdf.format(cal.time)
+            orders.add(Triple("INV-${dateStr.replace(":", "").replace("-", "").replace(" ", "")}-00${i+2}", 100000 + (i * 50000), "COMPLETED"))
+        }
+
+        // Reset calendar for accurate created_at insertion
+        cal.time = java.util.Date()
+
+        orders.forEachIndexed { index, (invoice, amount, status) ->
+            if (index > 1) cal.add(java.util.Calendar.DAY_OF_YEAR, -1)
+            
             val values = ContentValues().apply {
                 put("user_id", 1)
                 put("address_id", 1)
@@ -328,25 +340,18 @@ class DBOpenHelper(context: Context) :
                 put("courier_code", "jne")
                 put("courier_service", "REG")
                 put("etd", "2-3 Hari")
+                put("created_at", sdf.format(cal.time))
             }
             val orderId = db.insert(TABLE_ORDERS, null, values)
             
-            // Seed Order Items for each order
-            val items = listOf(
-                Triple(1, 1, 150000), // product_id, quantity, price
-                Triple(2, 1, 270000)
-            )
-            
-            for ((prodId, qty, price) in items) {
-                val itemValues = ContentValues().apply {
-                    put("product_id", prodId)
-                    put("order_id", orderId)
-                    put("quantity", qty)
-                    put("unit_price", price)
-                    put("subtotal", qty * price)
-                }
-                db.insert(TABLE_ORDER_ITEMS, null, itemValues)
+            val itemValues = ContentValues().apply {
+                put("product_id", 1)
+                put("order_id", orderId)
+                put("quantity", 1)
+                put("unit_price", amount)
+                put("subtotal", amount)
             }
+            db.insert(TABLE_ORDER_ITEMS, null, itemValues)
         }
     }
 
@@ -852,5 +857,89 @@ class DBOpenHelper(context: Context) :
         }
         cursor.close()
         return address
+    }
+
+    // =========================
+    // DASHBOARD METHODS
+    // =========================
+    fun getDashboardStats(): Pair<Int, Int> {
+        val db = readableDatabase
+        var totalOrdersToday = 0
+        var totalIncomeToday = 0
+        
+        val query = """
+            SELECT COUNT(*), SUM(total_amount) 
+            FROM $TABLE_ORDERS 
+            WHERE DATE(created_at) = DATE('now')
+            AND status != 'CANCELLED'
+        """.trimIndent()
+        
+        val cursor = db.rawQuery(query, null)
+        if (cursor.moveToFirst()) {
+            totalOrdersToday = cursor.getInt(0)
+            totalIncomeToday = cursor.getInt(1)
+        }
+        cursor.close()
+        return Pair(totalOrdersToday, totalIncomeToday)
+    }
+
+    fun getOrdersLast7Days(): List<Pair<String, Int>> {
+        val list = mutableListOf<Pair<String, Int>>()
+        val db = readableDatabase
+        
+        val query = """
+            SELECT DATE(created_at) as order_date, COUNT(*) as order_count
+            FROM $TABLE_ORDERS
+            WHERE created_at >= DATE('now', '-7 days')
+            GROUP BY order_date
+            ORDER BY order_date ASC
+        """.trimIndent()
+        
+        val cursor = db.rawQuery(query, null)
+        if (cursor.moveToFirst()) {
+            do {
+                list.add(Pair(cursor.getString(0), cursor.getInt(1)))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return list
+    }
+
+    fun getRecentOrders(limit: Int): List<Order> {
+        val list = mutableListOf<Order>()
+        val db = readableDatabase
+        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
+
+        val query = "SELECT * FROM $TABLE_ORDERS ORDER BY created_at DESC LIMIT ?"
+        val cursor = db.rawQuery(query, arrayOf(limit.toString()))
+
+        if (cursor.moveToFirst()) {
+            do {
+                val statusStr = cursor.getString(cursor.getColumnIndexOrThrow("status"))
+                val status = try { OrderStatus.valueOf(statusStr) } catch (e: Exception) { OrderStatus.PENDING }
+                val dateStr = cursor.getString(cursor.getColumnIndexOrThrow("created_at"))
+                val date = try { sdf.parse(dateStr) ?: java.util.Date() } catch (e: Exception) { java.util.Date() }
+
+                list.add(Order(
+                    id = cursor.getInt(cursor.getColumnIndexOrThrow("id")),
+                    userId = cursor.getInt(cursor.getColumnIndexOrThrow("user_id")),
+                    addressId = cursor.getInt(cursor.getColumnIndexOrThrow("address_id")),
+                    invoiceNumber = cursor.getString(cursor.getColumnIndexOrThrow("invoice_number")),
+                    shippingNumber = cursor.getString(cursor.getColumnIndexOrThrow("shipping_number")) ?: "",
+                    status = status,
+                    totalAmount = cursor.getInt(cursor.getColumnIndexOrThrow("total_amount")),
+                    shippingCost = cursor.getInt(cursor.getColumnIndexOrThrow("shipping_cost")),
+                    courierName = cursor.getString(cursor.getColumnIndexOrThrow("courier_name")) ?: "",
+                    courierCode = cursor.getString(cursor.getColumnIndexOrThrow("courier_code")) ?: "",
+                    courierService = cursor.getString(cursor.getColumnIndexOrThrow("courier_service")) ?: "",
+                    etd = cursor.getString(cursor.getColumnIndexOrThrow("etd")) ?: "",
+                    deliveryStartTime = null,
+                    deliveryEndTime = null,
+                    createdAt = date
+                ))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return list
     }
 }
