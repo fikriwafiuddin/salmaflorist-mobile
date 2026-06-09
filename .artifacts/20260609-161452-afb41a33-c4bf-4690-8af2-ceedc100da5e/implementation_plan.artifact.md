@@ -1,47 +1,44 @@
-# Implementation Plan - Admin Dashboard UI
+# Implementation Plan - Admin Categories Management
 
-This plan describes the implementation of the Admin Dashboard, including statistics, a 7-day order chart, and a table of recent orders.
+This plan outlines the implementation of the Categories management feature for the Admin role.
 
 ## User Review Required
 
-> [!NOTE]
-> Since there is no chart library (like MPAndroidChart) currently in the project and I shouldn't add new dependencies without permission, I will implement a custom `SimpleLineChartView` to visualize the 7-day order data.
+> [!TIP]
+> **Form Design**: Instead of creating a new fragment for the "Add Category" form, I propose using a **BottomSheetDialogFragment** or a **MaterialAlertDialog**. This provides a smoother user experience as the admin doesn't have to leave the list view to add or edit a category. I will proceed with an `AlertDialog` containing a custom view for simplicity and speed.
 
 ## Proposed Changes
 
 ### Data Layer
 
 #### [DBOpenHelper.kt](file:///D:/project/salmaflorist-mobile/app/src/main/java/com/example/salmaflorist/data/DBOpenHelper.kt)
-- Add `getDashboardStats()` to get today's order count and total income.
-- Add `getOrdersLast7Days()` to get order counts for the last 7 days.
-- Add `getRecentOrders(limit: Int)` to get the most recent orders.
+- Add `addCategory(name: String)` method.
+- Add `updateCategory(id: Int, newName: String)` method.
+- Add `deleteCategory(id: Int)` method.
 
-### UI Layer - Custom Views
+### UI Layer - Admin Categories
 
-#### [NEW] [SimpleLineChartView.kt](file:///D:/project/salmaflorist-mobile/app/src/main/java/com/example/salmaflorist/ui/view/SimpleLineChartView.kt)
-- A custom view to draw a simple line chart for the 7-day order history.
+#### [fragment_admin_categories.xml](file:///D:/project/salmaflorist-mobile/app/src/main/res/layout/fragment_admin_categories.xml)
+- Update layout to include:
+    - A "Add Category" button (FloatingActionButton or standard Button).
+    - A table header for the category list.
+    - A `TableLayout` to dynamically display the categories.
 
-### UI Layer - Admin Dashboard
+#### [NEW] [item_category_row.xml](file:///D:/project/salmaflorist-mobile/app/src/main/res/layout/item_category_row.xml)
+- Layout for a single row in the category table (Category Name + Menu Icon).
 
-#### [fragment_admin_dashboard.xml](file:///D:/project/salmaflorist-mobile/app/src/main/res/layout/fragment_admin_dashboard.xml)
-- Update layout with ScrollView containing:
-    - Statistics Cards (Today's Orders, Today's Income).
-    - Chart Section (Last 7 Days Orders).
-    - Recent Orders Section (Table/List).
-
-#### [AdminDashboardFragment.kt](file:///D:/project/salmaflorist-mobile/app/src/main/java/com/example/salmaflorist/ui/fragment/admin/AdminDashboardFragment.kt)
-- Update fragment logic to fetch data from `DBOpenHelper` and populate the UI.
-
-#### [NEW] [item_recent_order_row.xml](file:///D:/project/salmaflorist-mobile/app/src/main/res/layout/item_recent_order_row.xml)
-- Layout for a single row in the recent orders table.
-
-#### [NEW] [RecentOrderAdapter.kt](file:///D:/project/salmaflorist-mobile/app/src/main/java/com/example/salmaflorist/adapter/RecentOrderAdapter.kt)
-- Adapter for the recent orders list in the dashboard.
+#### [AdminCategoriesFragment.kt](file:///D:/project/salmaflorist-mobile/app/src/main/java/com/example/salmaflorist/ui/fragment/admin/AdminCategoriesFragment.kt)
+- Implement logic to:
+    - Load categories from the database.
+    - Dynamically populate the `TableLayout`.
+    - Handle the "Add" button click to show an input dialog.
+    - Handle the "Menu" icon click to show a `PopupMenu` with Edit and Delete options.
+    - Perform Edit (show dialog with pre-filled name) and Delete (show confirmation) actions.
 
 ## Verification Plan
 
 ### Manual Verification
-- Log in as admin and verify the Dashboard loads.
-- Verify "Total Pesanan Hari Ini" and "Total Pemasukan Hari Ini" show correct data (seed data might need updating to include "today").
-- Verify the Line Chart displays correctly.
-- Verify the Recent Orders table shows exactly 5 (or fewer if not available) orders with correct columns.
+1.  **View List**: Navigate to Categories and verify all seeded categories are displayed.
+2.  **Add Category**: Click the "Add" button, enter a name, and verify the list updates.
+3.  **Edit Category**: Click the menu on a category, select "Edit", change the name, and verify it updates in the database and UI.
+4.  **Delete Category**: Click the menu, select "Delete", confirm, and verify the category is removed.

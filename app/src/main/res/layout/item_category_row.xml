@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableRow xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:paddingVertical="12dp">
+
+    <TextView
+        android:id="@+id/tvCategoryName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Category Name"
+        android:textColor="@color/text_primary"
+        android:textSize="16sp" />
+
+    <ImageView
+        android:id="@+id/ivMenu"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/ic_sliders"
+        app:tint="@color/text_secondary"
+        xmlns:app="http://schemas.android.com/apk/res-auto" />
+
+</TableRow>

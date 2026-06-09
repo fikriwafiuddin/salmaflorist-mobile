@@ -427,7 +427,7 @@ class DBOpenHelper(context: Context) :
     fun getAllCategories(): List<Category> {
         val list = mutableListOf<Category>()
         val db = readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM $TABLE_CATEGORIES", null)
+        val cursor = db.rawQuery("SELECT * FROM $TABLE_CATEGORIES ORDER BY $CAT_NAME ASC", null)
         if (cursor.moveToFirst()) {
             do {
                 list.add(Category(cursor.getInt(0), cursor.getString(1)))
@@ -435,6 +435,30 @@ class DBOpenHelper(context: Context) :
         }
         cursor.close()
         return list
+    }
+
+    fun addCategory(name: String): Boolean {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put(CAT_NAME, name)
+        }
+        val result = db.insert(TABLE_CATEGORIES, null, values)
+        return result != -1L
+    }
+
+    fun updateCategory(id: Int, newName: String): Boolean {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put(CAT_NAME, newName)
+        }
+        val result = db.update(TABLE_CATEGORIES, values, "$CAT_ID = ?", arrayOf(id.toString()))
+        return result > 0
+    }
+
+    fun deleteCategory(id: Int): Boolean {
+        val db = writableDatabase
+        val result = db.delete(TABLE_CATEGORIES, "$CAT_ID = ?", arrayOf(id.toString()))
+        return result > 0
     }
 
     fun getTopProducts(): List<Product> {
