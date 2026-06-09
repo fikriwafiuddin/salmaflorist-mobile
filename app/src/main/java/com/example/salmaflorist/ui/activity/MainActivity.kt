@@ -56,7 +56,13 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
             if (!sessionManager.isLoggedIn()) {
                 loadLoginFragment()
             } else {
-                showHomeFragment()
+                if (sessionManager.getUserRole() == "admin") {
+                    val intent = Intent(this, AdminMainActivity::class.java)
+                    startActivity(intent)
+                    finish()
+                } else {
+                    showHomeFragment()
+                }
             }
         }
     }

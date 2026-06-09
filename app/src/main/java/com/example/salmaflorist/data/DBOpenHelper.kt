@@ -11,7 +11,7 @@ class DBOpenHelper(context: Context) :
 
     companion object {
         const val DATABASE_NAME = "salmaflorist"
-        const val DATABASE_VERSION = 7
+        const val DATABASE_VERSION = 8
 
         // TABLE NAMES
         const val TABLE_CATEGORIES = "categories"
@@ -39,6 +39,7 @@ class DBOpenHelper(context: Context) :
         const val USER_NAME = "username"
         const val USER_EMAIL = "email"
         const val USER_PASSWORD = "password"
+        const val USER_ROLE = "role"
     }
 
     override fun onCreate(db: SQLiteDatabase) {
@@ -159,7 +160,8 @@ class DBOpenHelper(context: Context) :
                 $USER_ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 $USER_NAME TEXT,
                 $USER_EMAIL TEXT UNIQUE,
-                $USER_PASSWORD TEXT
+                $USER_PASSWORD TEXT,
+                $USER_ROLE TEXT DEFAULT 'user'
             )
         """.trimIndent()
 
@@ -175,6 +177,17 @@ class DBOpenHelper(context: Context) :
         seedProducts(db)
         seedAddresses(db)
         seedOrders(db)
+        seedAdmin(db)
+    }
+
+    private fun seedAdmin(db: SQLiteDatabase) {
+        val values = ContentValues().apply {
+            put(USER_NAME, "Admin")
+            put(USER_EMAIL, "admin@gmail.com")
+            put(USER_PASSWORD, "admin123")
+            put(USER_ROLE, "admin")
+        }
+        db.insert(TABLE_USERS, null, values)
     }
 
     private fun seedAddresses(db: SQLiteDatabase) {
@@ -357,12 +370,13 @@ class DBOpenHelper(context: Context) :
     // =========================
     // USER METHODS
     // =========================
-    fun addUser(username: String, email: String, password: String): Boolean {
+    fun addUser(username: String, email: String, password: String, role: String = "user"): Boolean {
         val db = writableDatabase
         val values = ContentValues().apply {
             put(USER_NAME, username)
             put(USER_EMAIL, email)
             put(USER_PASSWORD, password)
+            put(USER_ROLE, role)
         }
         val result = db.insert(TABLE_USERS, null, values)
         return result != -1L
@@ -375,6 +389,18 @@ class DBOpenHelper(context: Context) :
         val exists = cursor.count > 0
         cursor.close()
         return exists
+    }
+
+    fun getUserRole(email: String): String? {
+        val db = readableDatabase
+        val query = "SELECT $USER_ROLE FROM $TABLE_USERS WHERE $USER_EMAIL = ?"
+        val cursor = db.rawQuery(query, arrayOf(email))
+        var role: String? = null
+        if (cursor.moveToFirst()) {
+            role = cursor.getString(0)
+        }
+        cursor.close()
+        return role
     }
 
     fun getUserByEmail(email: String): User? {

@@ -1,5 +1,6 @@
 package com.example.salmaflorist.ui.fragment
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -48,14 +49,21 @@ class LoginFragment : Fragment() {
                 Toast.makeText(requireContext(), "Isi semua data!", Toast.LENGTH_SHORT).show()
             } else {
                 if (dbHelper.checkUser(email, password)) {
-                    sessionManager.createLoginSession(email)
+                    val role = dbHelper.getUserRole(email) ?: "user"
+                    sessionManager.createLoginSession(email, role)
                     Toast.makeText(requireContext(), "Login Berhasil!", Toast.LENGTH_SHORT).show()
 
-                    // Update Bottom Nav Visibility and Navigate to Home
-                    (activity as? MainActivity)?.updateBottomNavVisibility(true)
-                    parentFragmentManager.beginTransaction()
-                        .replace(R.id.fragmentContainer, HomeFragment())
-                        .commit()
+                    if (role == "admin") {
+                        val intent = Intent(requireContext(), com.example.salmaflorist.ui.activity.AdminMainActivity::class.java)
+                        startActivity(intent)
+                        activity?.finish()
+                    } else {
+                        // Update Bottom Nav Visibility and Navigate to Home
+                        (activity as? MainActivity)?.updateBottomNavVisibility(true)
+                        parentFragmentManager.beginTransaction()
+                            .replace(R.id.fragmentContainer, HomeFragment())
+                            .commit()
+                    }
                 } else {
                     Toast.makeText(requireContext(), "Email atau Password Salah!", Toast.LENGTH_SHORT).show()
                 }

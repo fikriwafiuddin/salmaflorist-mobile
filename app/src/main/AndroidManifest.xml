@@ -35,6 +35,12 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".ui.activity.AdminMainActivity"
+            android:exported="false"
+            android:label="Admin Panel"
+            android:theme="@style/Theme.SalmaFlorist" />
+
 
     </application>
 
