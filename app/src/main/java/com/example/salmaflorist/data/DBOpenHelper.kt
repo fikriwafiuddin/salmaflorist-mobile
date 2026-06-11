@@ -11,7 +11,7 @@ class DBOpenHelper(context: Context) :
 
     companion object {
         const val DATABASE_NAME = "salmaflorist"
-        const val DATABASE_VERSION = 7
+        const val DATABASE_VERSION = 9  // naik dari 7 → 9
 
         // TABLE NAMES
         const val TABLE_CATEGORIES = "categories"
@@ -39,6 +39,7 @@ class DBOpenHelper(context: Context) :
         const val USER_NAME = "username"
         const val USER_EMAIL = "email"
         const val USER_PASSWORD = "password"
+        const val USER_ROLE = "role"   // TAMBAHAN
     }
 
     override fun onCreate(db: SQLiteDatabase) {
@@ -152,14 +153,15 @@ class DBOpenHelper(context: Context) :
         """.trimIndent()
 
         // =========================
-        // USERS
+        // USERS (dengan kolom role)
         // =========================
         val createUsers = """
             CREATE TABLE $TABLE_USERS (
                 $USER_ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 $USER_NAME TEXT,
                 $USER_EMAIL TEXT UNIQUE,
-                $USER_PASSWORD TEXT
+                $USER_PASSWORD TEXT,
+                $USER_ROLE TEXT DEFAULT 'user'
             )
         """.trimIndent()
 
@@ -175,6 +177,7 @@ class DBOpenHelper(context: Context) :
         seedProducts(db)
         seedAddresses(db)
         seedOrders(db)
+        seedUsers(db)   // TAMBAHAN
     }
 
     private fun seedAddresses(db: SQLiteDatabase) {
@@ -317,13 +320,12 @@ class DBOpenHelper(context: Context) :
                 put("etd", "2-3 Hari")
             }
             val orderId = db.insert(TABLE_ORDERS, null, values)
-            
-            // Seed Order Items for each order
+
             val items = listOf(
-                Triple(1, 1, 150000), // product_id, quantity, price
+                Triple(1, 1, 150000),
                 Triple(2, 1, 270000)
             )
-            
+
             for ((prodId, qty, price) in items) {
                 val itemValues = ContentValues().apply {
                     put("product_id", prodId)
@@ -337,6 +339,28 @@ class DBOpenHelper(context: Context) :
         }
     }
 
+    // ========================= TAMBAHAN =========================
+    // Seed akun admin & user biasa agar tidak perlu register ulang
+    private fun seedUsers(db: SQLiteDatabase) {
+        // Akun admin
+        val admin = ContentValues().apply {
+            put(USER_NAME, "Admin")
+            put(USER_EMAIL, "admin@gmail.com")
+            put(USER_PASSWORD, "admin123")
+            put(USER_ROLE, "admin")
+        }
+        db.insert(TABLE_USERS, null, admin)
+
+        // Akun user biasa
+        val user = ContentValues().apply {
+            put(USER_NAME, "User")
+            put(USER_EMAIL, "user@gmail.com")
+            put(USER_PASSWORD, "user123")
+            put(USER_ROLE, "user")
+        }
+        db.insert(TABLE_USERS, null, user)
+    }
+    // ============================================================
 
     override fun onUpgrade(
         db: SQLiteDatabase,
@@ -363,6 +387,7 @@ class DBOpenHelper(context: Context) :
             put(USER_NAME, username)
             put(USER_EMAIL, email)
             put(USER_PASSWORD, password)
+            put(USER_ROLE, "user")  // user baru selalu role "user"
         }
         val result = db.insert(TABLE_USERS, null, values)
         return result != -1L
@@ -386,7 +411,8 @@ class DBOpenHelper(context: Context) :
             user = User(
                 id = cursor.getInt(cursor.getColumnIndexOrThrow(USER_ID)),
                 username = cursor.getString(cursor.getColumnIndexOrThrow(USER_NAME)),
-                email = cursor.getString(cursor.getColumnIndexOrThrow(USER_EMAIL))
+                email = cursor.getString(cursor.getColumnIndexOrThrow(USER_EMAIL)),
+                role = cursor.getString(cursor.getColumnIndexOrThrow(USER_ROLE)) ?: "user"  // TAMBAHAN
             )
         }
         cursor.close()
@@ -574,21 +600,18 @@ class DBOpenHelper(context: Context) :
     fun addToCart(productId: Int, quantity: Int = 1) {
         val db = writableDatabase
 
-        // Cek apakah produk sudah ada di keranjang
         val cursor = db.rawQuery(
             "SELECT $PROD_ID, quantity FROM $TABLE_CART_ITEMS WHERE product_id = ?",
             arrayOf(productId.toString())
         )
 
         if (cursor.moveToFirst()) {
-            // Jika sudah ada, update quantity (Quantity + 1)
             val currentQty = cursor.getInt(1)
             val values = ContentValues().apply {
                 put("quantity", currentQty + quantity)
             }
             db.update(TABLE_CART_ITEMS, values, "product_id = ?", arrayOf(productId.toString()))
         } else {
-            // Jika belum ada, insert baru
             val values = ContentValues().apply {
                 put("product_id", productId)
                 put("quantity", quantity)
@@ -650,7 +673,6 @@ class DBOpenHelper(context: Context) :
         return list
     }
 
-    // Update quantity
     fun updateCartQuantity(cartId: Int, newQty: Int) {
         val db = writableDatabase
         if (newQty > 0) {
@@ -661,7 +683,6 @@ class DBOpenHelper(context: Context) :
         }
     }
 
-    // Hapus item
     fun deleteCartItem(cartId: Int) {
         val db = writableDatabase
         db.delete(TABLE_CART_ITEMS, "id = ?", arrayOf(cartId.toString()))
@@ -673,17 +694,17 @@ class DBOpenHelper(context: Context) :
     fun getOrders(statusFilter: String? = null): List<Order> {
         val list = mutableListOf<Order>()
         val db = readableDatabase
-        
+
         var query = "SELECT * FROM $TABLE_ORDERS"
         val args = mutableListOf<String>()
-        
+
         if (!statusFilter.isNullOrEmpty() && statusFilter != "Semua") {
             query += " WHERE status = ?"
             args.add(statusFilter.uppercase())
         }
-        
+
         query += " ORDER BY created_at DESC"
-        
+
         val cursor = db.rawQuery(query, if (args.isEmpty()) null else args.toTypedArray())
 
         val sdf = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
@@ -771,7 +792,7 @@ class DBOpenHelper(context: Context) :
             JOIN $TABLE_CATEGORIES c ON p.category_id = c.id
             WHERE oi.order_id = ?
         """.trimIndent()
-        
+
         val cursor = db.rawQuery(query, arrayOf(orderId.toString()))
         if (cursor.moveToFirst()) {
             do {
@@ -827,4 +848,100 @@ class DBOpenHelper(context: Context) :
         cursor.close()
         return address
     }
+
+    // ========================= TAMBAHAN =========================
+    // Fungsi update status pesanan (khusus admin)
+    fun updateOrderStatus(orderId: Int, newStatus: OrderStatus): Boolean {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put("status", newStatus.name)
+        }
+        val rows = db.update(TABLE_ORDERS, values, "id = ?", arrayOf(orderId.toString()))
+        return rows > 0
+    }
+
+    // Fungsi simpan alamat baru saat checkout
+    fun insertAddress(
+        userId: Int,
+        customerName: String,
+        whatsappNumber: String,
+        addressDetail: String,
+        provinceName: String,
+        cityName: String,
+        districtName: String,
+        postalCode: String
+    ): Long {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put("user_id", userId)
+            put("customer_name", customerName)
+            put("whatsapp_number", whatsappNumber)
+            put("address_detail", addressDetail)
+            put("province_id", 0)
+            put("province_name", provinceName)
+            put("city_id", 0)
+            put("city_name", cityName)
+            put("district_id", 0)
+            put("district_name", districtName)
+            put("postal_code", postalCode)
+        }
+        return db.insert(TABLE_ADDRESSES, null, values)
+    }
+
+    // Fungsi simpan pesanan baru
+    fun insertOrder(
+        userId: Int,
+        addressId: Int,
+        totalAmount: Int,
+        shippingCost: Int,
+        courierName: String,
+        courierCode: String,
+        courierService: String,
+        etd: String,
+        cartItems: ArrayList<CartItem>
+    ): Long {
+        val db = writableDatabase
+        val invoiceNumber = "INV-${System.currentTimeMillis()}"
+        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).apply {
+            timeZone = java.util.TimeZone.getTimeZone("Asia/Jakarta")
+        }
+        val createdAtWib = sdf.format(java.util.Date())
+
+        val orderValues = ContentValues().apply {
+            put("user_id", userId)
+            put("address_id", addressId)
+            put("invoice_number", invoiceNumber)
+            put("shipping_number", "")
+            put("status", "PENDING")
+            put("total_amount", totalAmount)
+            put("shipping_cost", shippingCost)
+            put("courier_name", courierName)
+            put("courier_code", courierCode)
+            put("courier_service", courierService)
+            put("etd", etd)
+            put("created_at", createdAtWib)
+        }
+
+        val orderId = db.insert(TABLE_ORDERS, null, orderValues)
+
+        for (item in cartItems) {
+            val itemValues = ContentValues().apply {
+                put("product_id", item.productId)
+                put("order_id", orderId)
+                put("quantity", item.quantity)
+                put("unit_price", item.product?.price ?: 0)
+                put("subtotal", item.quantity * (item.product?.price ?: 0))
+            }
+            db.insert(TABLE_ORDER_ITEMS, null, itemValues)
+        }
+
+        return orderId
+    }
+
+    // Fungsi kosongkan keranjang setelah checkout
+    fun clearCart() {
+        val db = writableDatabase
+        db.delete(TABLE_CART_ITEMS, null, null)
+    }
+    // ============================================================
 }

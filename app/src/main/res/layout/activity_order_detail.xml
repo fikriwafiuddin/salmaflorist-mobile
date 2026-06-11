@@ -261,6 +261,19 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
+
+            <Button
+                android:id="@+id/btnChangeStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"
+                android:backgroundTint="#D81B60"
+                android:text="Ubah Status Pesanan"
+                android:textColor="#FFFFFF"
+                android:visibility="gone" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

@@ -3,6 +3,8 @@ package com.example.salmaflorist.ui.activity
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -13,6 +15,7 @@ import com.example.salmaflorist.databinding.ItemOrderDetailProductBinding
 import com.example.salmaflorist.model.OrderItem
 import com.example.salmaflorist.model.OrderStatus
 import com.example.salmaflorist.model.Product
+import com.example.salmaflorist.util.SessionManager
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -21,6 +24,8 @@ class OrderDetailActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityOrderDetailBinding
     private lateinit var db: DBOpenHelper
+    private lateinit var session: SessionManager
+    private var currentOrderId: Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,15 +33,17 @@ class OrderDetailActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         db = DBOpenHelper(this)
+        session = SessionManager(this)
 
-        val orderId = intent.getIntExtra("ORDER_ID", -1)
-        if (orderId == -1) {
+        currentOrderId = intent.getIntExtra("ORDER_ID", -1)
+        if (currentOrderId == -1) {
             finish()
             return
         }
 
         setupToolbar()
-        loadOrderDetail(orderId)
+        loadOrderDetail(currentOrderId)
+        setupAdminButton()  // TAMBAHAN: setup tombol ubah status untuk admin
     }
 
     private fun setupToolbar() {
@@ -45,13 +52,47 @@ class OrderDetailActivity : AppCompatActivity() {
         binding.toolbar.setNavigationOnClickListener { onBackPressedDispatcher.onBackPressed() }
     }
 
+    // ========================= TAMBAHAN =========================
+    private fun setupAdminButton() {
+        if (session.isAdmin()) {
+            // Admin: tampilkan tombol ubah status
+            binding.btnChangeStatus.visibility = android.view.View.VISIBLE
+            binding.btnChangeStatus.setOnClickListener {
+                showChangeStatusDialog()
+            }
+        } else {
+            // User biasa: sembunyikan tombol
+            binding.btnChangeStatus.visibility = android.view.View.GONE
+        }
+    }
+
+    private fun showChangeStatusDialog() {
+        val statusOptions = arrayOf("PENDING", "PAID", "PROCESSING", "DELIVERED", "COMPLETED", "CANCELLED")
+
+        AlertDialog.Builder(this)
+            .setTitle("Ubah Status Pesanan")
+            .setItems(statusOptions) { _, which ->
+                val selectedStatus = OrderStatus.valueOf(statusOptions[which])
+                val success = db.updateOrderStatus(currentOrderId, selectedStatus)
+                if (success) {
+                    Toast.makeText(this, "Status diubah ke ${statusOptions[which]}", Toast.LENGTH_SHORT).show()
+                    loadOrderDetail(currentOrderId) // refresh tampilan
+                } else {
+                    Toast.makeText(this, "Gagal mengubah status", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Batal", null)
+            .show()
+    }
+    // ============================================================
+
     private fun loadOrderDetail(orderId: Int) {
         val order = db.getOrderById(orderId) ?: return
 
         with(binding) {
             tvInvoiceNumber.text = order.invoiceNumber
             tvStatus.text = order.status.name
-            
+
             val sdf = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
             tvCreatedAt.text = "Tanggal Pesanan: ${sdf.format(order.createdAt)}"
             tvShippingNumber.text = "No. Resi: ${order.shippingNumber.ifEmpty { "-" }}"
@@ -60,7 +101,6 @@ class OrderDetailActivity : AppCompatActivity() {
             tvTotalAmount.text = formatter.format(order.totalAmount).replace("Rp", "Rp ")
             tvShippingCost.text = "Ongkos Kirim: ${formatter.format(order.shippingCost).replace("Rp", "Rp ")}"
 
-            // Setup Status Background
             val bgRes = when (order.status) {
                 OrderStatus.PENDING -> R.drawable.bg_status_pending
                 OrderStatus.PAID -> R.drawable.bg_status_paid
@@ -70,7 +110,6 @@ class OrderDetailActivity : AppCompatActivity() {
             }
             tvStatus.setBackgroundResource(bgRes)
 
-            // Fetch Address
             val address = db.getAddressById(order.addressId)
             if (address != null) {
                 tvCustomerName.text = "Nama: ${address.customerName}"
@@ -81,11 +120,10 @@ class OrderDetailActivity : AppCompatActivity() {
                 tvProvince.text = "Provinsi: ${address.provinceName}"
                 tvPostalCode.text = "Kode Pos: ${address.postalCode}"
             }
-            
+
             tvCourier.text = "Kurir: ${order.courierName} ${order.courierService}"
             tvEtd.text = "Estimasi: ${order.etd}"
 
-            // Load Items
             val items = db.getOrderItems(orderId)
             rvOrderItems.layoutManager = LinearLayoutManager(this@OrderDetailActivity)
             rvOrderItems.adapter = OrderItemAdapter(items)
@@ -104,10 +142,10 @@ class OrderDetailActivity : AppCompatActivity() {
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val (item, product) = items[position]
             val context = holder.itemView.context
-            
+
             with(holder.binding) {
                 tvProductName.text = product.name
-                
+
                 val formatter = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
                 tvProductQty.text = "${item.quantity} x ${formatter.format(item.unitPrice).replace("Rp", "Rp ")}"
                 tvSubtotal.text = formatter.format(item.subTotal).replace("Rp", "Rp ")

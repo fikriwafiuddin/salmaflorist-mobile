@@ -11,11 +11,13 @@ class SessionManager(context: Context) {
         private const val PREF_NAME = "SalmaFloristSession"
         private const val IS_LOGGED_IN = "isLoggedIn"
         private const val KEY_EMAIL = "userEmail"
+        private const val KEY_ROLE = "userRole"  // TAMBAHAN
     }
 
-    fun createLoginSession(email: String) {
+    fun createLoginSession(email: String, role: String = "user") {  // TAMBAHAN parameter role
         editor.putBoolean(IS_LOGGED_IN, true)
         editor.putString(KEY_EMAIL, email)
+        editor.putString(KEY_ROLE, role)   // TAMBAHAN
         editor.apply()
     }
 
@@ -25,6 +27,14 @@ class SessionManager(context: Context) {
 
     fun getUserEmail(): String? {
         return prefs.getString(KEY_EMAIL, null)
+    }
+
+    fun getUserRole(): String {         // TAMBAHAN fungsi baru
+        return prefs.getString(KEY_ROLE, "user") ?: "user"
+    }
+
+    fun isAdmin(): Boolean {            // TAMBAHAN fungsi baru
+        return getUserRole() == "admin"
     }
 
     fun logout() {

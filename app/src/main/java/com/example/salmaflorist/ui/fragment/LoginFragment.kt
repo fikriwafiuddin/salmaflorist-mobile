@@ -48,10 +48,13 @@ class LoginFragment : Fragment() {
                 Toast.makeText(requireContext(), "Isi semua data!", Toast.LENGTH_SHORT).show()
             } else {
                 if (dbHelper.checkUser(email, password)) {
-                    sessionManager.createLoginSession(email)
+                    // TAMBAHAN: ambil role user lalu simpan ke session
+                    val user = dbHelper.getUserByEmail(email)
+                    val role = user?.role ?: "user"
+                    sessionManager.createLoginSession(email, role)
+
                     Toast.makeText(requireContext(), "Login Berhasil!", Toast.LENGTH_SHORT).show()
 
-                    // Update Bottom Nav Visibility and Navigate to Home
                     (activity as? MainActivity)?.updateBottomNavVisibility(true)
                     parentFragmentManager.beginTransaction()
                         .replace(R.id.fragmentContainer, HomeFragment())
