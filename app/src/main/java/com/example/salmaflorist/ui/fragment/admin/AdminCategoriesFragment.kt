@@ -118,12 +118,12 @@ class AdminCategoriesFragment : Fragment() {
             .setTitle("Hapus Kategori")
             .setMessage("Apakah Anda yakin ingin menghapus kategori '${category.name}'? Produk di dalam kategori ini juga akan ikut terhapus.")
             .setPositiveButton("Hapus") { _, _ ->
-                if (dbHelper.deleteCategory(category.id)) {
-                    Toast.makeText(requireContext(), "Berhasil dihapus!", Toast.LENGTH_SHORT).show()
-                    loadCategories()
-                } else {
-                    Toast.makeText(requireContext(), "Gagal menghapus!", Toast.LENGTH_SHORT).show()
-                }
+//                if (dbHelper.deleteCategory(category.id)) {
+//                    Toast.makeText(requireContext(), "Berhasil dihapus!", Toast.LENGTH_SHORT).show()
+//                    loadCategories()
+//                } else {
+//                    Toast.makeText(requireContext(), "Gagal menghapus!", Toast.LENGTH_SHORT).show()
+//                }
             }
             .setNegativeButton("Batal", null)
             .show()

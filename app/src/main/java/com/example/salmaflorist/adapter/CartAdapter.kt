@@ -1,5 +1,6 @@
 package com.example.salmaflorist.adapter
 
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -55,25 +56,26 @@ class CartAdapter(
             // =========================
 
             val context = root.context
+            val imageSource = item.product?.image ?: ""
 
-            val imageResId =
-                context.resources.getIdentifier(
-                    item.product?.image,
+            if (imageSource.startsWith("content://") || imageSource.startsWith("file://")) {
+                try {
+                    ivProductCart.setImageURI(Uri.parse(imageSource))
+                } catch (e: SecurityException) {
+                    ivProductCart.setImageResource(R.drawable.placeholder_flower)
+                }
+            } else {
+                val imageResId = context.resources.getIdentifier(
+                    imageSource,
                     "drawable",
                     context.packageName
                 )
 
-            if (imageResId != 0) {
-
-                ivProductCart.setImageResource(
-                    imageResId
-                )
-
-            } else {
-
-                ivProductCart.setImageResource(
-                    R.drawable.placeholder_flower
-                )
+                if (imageResId != 0) {
+                    ivProductCart.setImageResource(imageResId)
+                } else {
+                    ivProductCart.setImageResource(R.drawable.placeholder_flower)
+                }
             }
 
             // =========================

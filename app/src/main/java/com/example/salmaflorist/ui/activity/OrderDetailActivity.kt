@@ -1,5 +1,6 @@
 package com.example.salmaflorist.ui.activity
 
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -112,11 +113,20 @@ class OrderDetailActivity : AppCompatActivity() {
                 tvProductQty.text = "${item.quantity} x ${formatter.format(item.unitPrice).replace("Rp", "Rp ")}"
                 tvSubtotal.text = formatter.format(item.subTotal).replace("Rp", "Rp ")
 
-                val imageResId = context.resources.getIdentifier(product.image, "drawable", context.packageName)
-                if (imageResId != 0) {
-                    ivProduct.setImageResource(imageResId)
+                val imageSource = product.image
+                if (imageSource.startsWith("content://") || imageSource.startsWith("file://")) {
+                    try {
+                        ivProduct.setImageURI(Uri.parse(imageSource))
+                    } catch (e: SecurityException) {
+                        ivProduct.setImageResource(R.drawable.bunga1)
+                    }
                 } else {
-                    ivProduct.setImageResource(R.drawable.bunga1)
+                    val imageResId = context.resources.getIdentifier(imageSource, "drawable", context.packageName)
+                    if (imageResId != 0) {
+                        ivProduct.setImageResource(imageResId)
+                    } else {
+                        ivProduct.setImageResource(R.drawable.bunga1)
+                    }
                 }
             }
         }

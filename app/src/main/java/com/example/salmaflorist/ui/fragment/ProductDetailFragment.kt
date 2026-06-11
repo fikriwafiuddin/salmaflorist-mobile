@@ -1,5 +1,6 @@
 package com.example.salmaflorist.ui.fragment
 
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -52,11 +53,19 @@ class ProductDetailFragment : Fragment() {
             binding.tvProductPrice.text = formatter.format(p.price).replace("Rp", "Rp ")
 
             val context = requireContext()
-            val imageResId = context.resources.getIdentifier(p.image, "drawable", context.packageName)
-            if (imageResId != 0) {
-                binding.ivProductImage.setImageResource(imageResId)
+            if (p.image.startsWith("content://") || p.image.startsWith("file://")) {
+                try {
+                    binding.ivProductImage.setImageURI(Uri.parse(p.image))
+                } catch (e: SecurityException) {
+                    binding.ivProductImage.setImageResource(R.drawable.placeholder_flower)
+                }
             } else {
-                binding.ivProductImage.setImageResource(R.drawable.placeholder_flower)
+                val imageResId = context.resources.getIdentifier(p.image, "drawable", context.packageName)
+                if (imageResId != 0) {
+                    binding.ivProductImage.setImageResource(imageResId)
+                } else {
+                    binding.ivProductImage.setImageResource(R.drawable.placeholder_flower)
+                }
             }
         }
 

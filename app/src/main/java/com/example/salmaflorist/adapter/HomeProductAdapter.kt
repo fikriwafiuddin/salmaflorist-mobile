@@ -1,5 +1,6 @@
 package com.example.salmaflorist.adapter
 
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -54,21 +55,30 @@ class HomeProductAdapter(
 
         val context = holder.itemView.context
         val imageName = product.image
-        val imageResId =
-            context.resources.getIdentifier(
-                imageName,
-                "drawable",
-                context.packageName
-            )
 
-        if (imageResId != 0) {
-            holder.ivImage.setImageResource(
-                imageResId
-            )
+        if (imageName.startsWith("content://") || imageName.startsWith("file://")) {
+            try {
+                holder.ivImage.setImageURI(Uri.parse(imageName))
+            } catch (e: SecurityException) {
+                holder.ivImage.setImageResource(R.drawable.placeholder_flower)
+            }
         } else {
-            holder.ivImage.setImageResource(
-                R.drawable.placeholder_flower
-            )
+            val imageResId =
+                context.resources.getIdentifier(
+                    imageName,
+                    "drawable",
+                    context.packageName
+                )
+
+            if (imageResId != 0) {
+                holder.ivImage.setImageResource(
+                    imageResId
+                )
+            } else {
+                holder.ivImage.setImageResource(
+                    R.drawable.placeholder_flower
+                )
+            }
         }
     }
 

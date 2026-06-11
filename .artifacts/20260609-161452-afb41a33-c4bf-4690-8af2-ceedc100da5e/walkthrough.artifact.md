@@ -1,37 +1,38 @@
-# Walkthrough - Admin Categories Management
+# Walkthrough - Refined Product Form Image Handling
 
-I have implemented the Categories management feature for the Admin role, allowing administrators to view, add, edit, and delete categories directly from a streamlined interface.
+I have significantly improved the image management in the Admin Product Form, enabling both camera capture and reliable previews for existing products.
 
 ## Changes Made
 
-### 1. Data Layer Updates
-- **[DBOpenHelper.kt](file:///D:/project/salmaflorist-mobile/app/src/main/java/com/example/salmaflorist/data/DBOpenHelper.kt)**: Added core CRUD methods:
-    - `addCategory(name: String)`
-    - `updateCategory(id: Int, newName: String)`
-    - `deleteCategory(id: Int)`
-    - Updated `getAllCategories()` to return categories sorted alphabetically.
+### 1. Camera & Gallery Integration
+- **[fragment_admin_product_form.xml](file:///D:/project/salmaflorist-mobile/app/src/main/res/layout/fragment_admin_product_form.xml)**: Replaced the single "Pilih Gambar" button with dedicated **Kamera** and **Galeri** buttons.
+- **[AdminProductFormFragment.kt](file:///D:/project/salmaflorist-mobile/app/src/main/java/com/example/salmaflorist/ui/fragment/admin/AdminProductFormFragment.kt)**:
+    - Implemented `TakePicture` logic to capture photos directly from the camera.
+    - Implemented a secure `FileProvider` to handle camera output files.
+    - Maintained and integrated existing Gallery pick logic.
 
-### 2. Streamlined UI Design
-- **Single-Screen Management**: Instead of separate fragments for forms, I used **AlertDialogs** for adding and editing categories. This keeps the admin on the list view and speeds up their workflow.
-- **[fragment_admin_categories.xml](file:///D:/project/salmaflorist-mobile/app/src/main/res/layout/fragment_admin_categories.xml)**:
-    - A clean table layout showing category names.
-    - A **FloatingActionButton (FAB)** for adding new categories.
-- **[item_category_row.xml](file:///D:/project/salmaflorist-mobile/app/src/main/res/layout/item_category_row.xml)**: A custom row layout with a "Settings" icon that triggers a PopupMenu.
+### 2. Robust Image Preview
+- **[AdminProductFormFragment.kt](file:///D:/project/salmaflorist-mobile/app/src/main/java/com/example/salmaflorist/ui/fragment/admin/AdminProductFormFragment.kt)**:
+    - Added an enhanced `displayImage()` helper that correctly handles three types of image sources:
+        1.  **Content URIs** (from Gallery).
+        2.  **File Paths** (from Camera/Internal Storage).
+        3.  **Resource Names** (from the initial flower seed data, e.g., "bunga1").
+    - Ensured that when editing a product, the stored image is immediately loaded into the preview window.
 
-### 3. Feature Logic
-- **[AdminCategoriesFragment.kt](file:///D:/project/salmaflorist-mobile/app/src/main/java/com/example/salmaflorist/ui/fragment/admin/AdminCategoriesFragment.kt)**:
-    - **Dynamic List**: Automatically refreshes the table after any Add, Edit, or Delete operation.
-    - **Popup Menu**: Clicking the icon next to a category reveals "Edit" and "Hapus" options.
-    - **Validation**: Added basic checks to ensure category names are not empty.
-    - **Safety**: Deleting a category includes a confirmation dialog warning that associated products will also be removed (via DB cascade).
+### 3. Configuration & Permissions
+- **[AndroidManifest.xml](file:///D:/project/salmaflorist-mobile/app/src/main/AndroidManifest.xml)**:
+    - Added `CAMERA` permission and feature declaration.
+    - Registered the `FileProvider` to allow the Camera app to safely save photos into the app's storage.
+- **[provider_paths.xml](file:///D:/project/salmaflorist-mobile/app/src/main/res/xml/provider_paths.xml)**: Defined the secure paths for the `FileProvider`.
 
 ## How to Test
 1.  **Login as Admin**: Use `admin@gmail.com` / `admin123`.
-2.  **Navigate to Categories**: Click the "Categories" icon in the bottom navigation.
-3.  **Add Category**: Click the pink `+` button, enter a name, and save.
-4.  **Edit/Delete**: Click the slider icon next to any category to reveal the options.
+2.  **Edit Existing Product**: Click "Update" on a product from the list. Verify that the image (e.g., the seed flowers) appears in the preview box.
+3.  **Use Camera**: Click the **Kamera** button, take a photo, and confirm. Verify it appears in the preview.
+4.  **Use Gallery**: Click the **Galeri** button, pick a photo, and verify it updates the preview.
+5.  **Save & Re-edit**: Save the product and then open it for editing again. Verify the new image persists and loads correctly.
 
 ## Verification Summary
-- Verified that all CRUD operations correctly update the SQLite database.
-- Confirmed that the UI refreshes immediately after database changes.
-- Tested the "Edit" pre-filling logic and "Delete" confirmation warnings.
+- Verified that the `FileProvider` is correctly configured and accessible.
+- Confirmed that the `displayImage` logic successfully resolves resource names, file paths, and content URIs.
+- Validated that the UI layout remains clean and functional with the new camera/gallery controls.

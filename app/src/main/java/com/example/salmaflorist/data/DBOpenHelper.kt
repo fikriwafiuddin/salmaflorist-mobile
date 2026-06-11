@@ -455,10 +455,84 @@ class DBOpenHelper(context: Context) :
         return result > 0
     }
 
-    fun deleteCategory(id: Int): Boolean {
+    fun addProduct(
+        categoryId: Int,
+        name: String,
+        price: Int,
+        description: String,
+        weight: Int,
+        image: String
+    ): Boolean {
         val db = writableDatabase
-        val result = db.delete(TABLE_CATEGORIES, "$CAT_ID = ?", arrayOf(id.toString()))
+        val values = ContentValues().apply {
+            put(PROD_CATEGORY_ID, categoryId)
+            put(PROD_NAME, name)
+            put(PROD_PRICE, price)
+            put(PROD_DESCRIPTION, description)
+            put(PROD_WEIGHT, weight)
+            put(PROD_IMAGE, image)
+        }
+        val result = db.insert(TABLE_PRODUCTS, null, values)
+        return result != -1L
+    }
+
+    fun updateProduct(
+        id: Int,
+        categoryId: Int,
+        name: String,
+        price: Int,
+        description: String,
+        weight: Int,
+        image: String
+    ): Boolean {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put(PROD_CATEGORY_ID, categoryId)
+            put(PROD_NAME, name)
+            put(PROD_PRICE, price)
+            put(PROD_DESCRIPTION, description)
+            put(PROD_WEIGHT, weight)
+            put(PROD_IMAGE, image)
+        }
+        val result = db.update(TABLE_PRODUCTS, values, "$PROD_ID = ?", arrayOf(id.toString()))
         return result > 0
+    }
+
+    fun deleteProduct(id: Int): Boolean {
+        val db = writableDatabase
+        val result = db.delete(TABLE_PRODUCTS, "$PROD_ID = ?", arrayOf(id.toString()))
+        return result > 0
+    }
+
+    fun getProductById(id: Int): Product? {
+        val db = readableDatabase
+        val query = """
+            SELECT 
+                p.$PROD_ID, p.$PROD_CATEGORY_ID, p.$PROD_NAME, p.$PROD_PRICE, 
+                p.$PROD_DESCRIPTION, p.$PROD_WEIGHT, p.$PROD_IMAGE,
+                c.$CAT_NAME
+            FROM $TABLE_PRODUCTS p
+            JOIN $TABLE_CATEGORIES c ON p.$PROD_CATEGORY_ID = c.$CAT_ID
+            WHERE p.$PROD_ID = ?
+        """.trimIndent()
+        
+        val cursor = db.rawQuery(query, arrayOf(id.toString()))
+        var product: Product? = null
+        if (cursor.moveToFirst()) {
+            val category = Category(cursor.getInt(1), cursor.getString(7))
+            product = Product(
+                id = cursor.getInt(0),
+                categoryId = cursor.getInt(1),
+                name = cursor.getString(2),
+                price = cursor.getInt(3),
+                description = cursor.getString(4),
+                weight = cursor.getInt(5),
+                image = cursor.getString(6),
+                category = category
+            )
+        }
+        cursor.close()
+        return product
     }
 
     fun getTopProducts(): List<Product> {
