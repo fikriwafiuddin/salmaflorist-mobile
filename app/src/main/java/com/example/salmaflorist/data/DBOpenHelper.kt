@@ -800,15 +800,29 @@ class DBOpenHelper(context: Context) :
     // ORDER METHODS
     // =========================
     fun getOrders(statusFilter: String? = null): List<Order> {
+        return getOrdersFiltered(null, null, statusFilter)
+    }
+
+    fun getOrdersFiltered(month: Int?, year: Int?, status: String?): List<Order> {
         val list = mutableListOf<Order>()
         val db = readableDatabase
         
-        var query = "SELECT * FROM $TABLE_ORDERS"
+        var query = "SELECT * FROM $TABLE_ORDERS WHERE 1=1"
         val args = mutableListOf<String>()
         
-        if (!statusFilter.isNullOrEmpty() && statusFilter != "Semua") {
-            query += " WHERE status = ?"
-            args.add(statusFilter.uppercase())
+        if (month != null && month != 0) {
+            query += " AND strftime('%m', created_at) = ?"
+            args.add(String.format("%02d", month))
+        }
+        
+        if (year != null && year != 0) {
+            query += " AND strftime('%Y', created_at) = ?"
+            args.add(year.toString())
+        }
+        
+        if (!status.isNullOrEmpty() && status != "Semua") {
+            query += " AND status = ?"
+            args.add(status.uppercase())
         }
         
         query += " ORDER BY created_at DESC"
@@ -820,18 +834,9 @@ class DBOpenHelper(context: Context) :
         if (cursor.moveToFirst()) {
             do {
                 val statusStr = cursor.getString(cursor.getColumnIndexOrThrow("status"))
-                val status = try {
-                    OrderStatus.valueOf(statusStr)
-                } catch (e: Exception) {
-                    OrderStatus.PENDING
-                }
-
+                val statusEnum = try { OrderStatus.valueOf(statusStr) } catch (e: Exception) { OrderStatus.PENDING }
                 val dateStr = cursor.getString(cursor.getColumnIndexOrThrow("created_at"))
-                val date = try {
-                    sdf.parse(dateStr) ?: java.util.Date()
-                } catch (e: Exception) {
-                    java.util.Date()
-                }
+                val date = try { sdf.parse(dateStr) ?: java.util.Date() } catch (e: Exception) { java.util.Date() }
 
                 list.add(Order(
                     id = cursor.getInt(cursor.getColumnIndexOrThrow("id")),
@@ -839,7 +844,7 @@ class DBOpenHelper(context: Context) :
                     addressId = cursor.getInt(cursor.getColumnIndexOrThrow("address_id")),
                     invoiceNumber = cursor.getString(cursor.getColumnIndexOrThrow("invoice_number")),
                     shippingNumber = cursor.getString(cursor.getColumnIndexOrThrow("shipping_number")) ?: "",
-                    status = status,
+                    status = statusEnum,
                     totalAmount = cursor.getInt(cursor.getColumnIndexOrThrow("total_amount")),
                     shippingCost = cursor.getInt(cursor.getColumnIndexOrThrow("shipping_cost")),
                     courierName = cursor.getString(cursor.getColumnIndexOrThrow("courier_name")) ?: "",
@@ -854,6 +859,17 @@ class DBOpenHelper(context: Context) :
         }
         cursor.close()
         return list
+    }
+
+    fun updateOrderStatus(orderId: Int, status: OrderStatus, shippingNumber: String? = null): Boolean {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put("status", status.name)
+            if (shippingNumber != null) {
+                put("shipping_number", shippingNumber)
+            }
+        }
+        return db.update(TABLE_ORDERS, values, "id = ?", arrayOf(orderId.toString())) > 0
     }
 
     fun getOrderById(orderId: Int): Order? {
