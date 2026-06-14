@@ -1018,7 +1018,141 @@ class DBOpenHelper(context: Context) :
         cursor.close()
         return list
     }
+// =========================
+// REPORT METHODS
+// =========================
 
+    fun getRevenueSummary(month: Int?, year: Int?): Triple<Long, Int, Long> {
+        val db = readableDatabase
+        var query = "SELECT SUM(total_amount), COUNT(*) FROM $TABLE_ORDERS WHERE status != 'CANCELLED'"
+        val args = mutableListOf<String>()
+        if (month != null && month != 0) {
+            query += " AND strftime('%m', created_at) = ?"
+            args.add(String.format("%02d", month))
+        }
+        if (year != null && year != 0) {
+            query += " AND strftime('%Y', created_at) = ?"
+            args.add(year.toString())
+        }
+        val cursor = db.rawQuery(query, args.toTypedArray())
+        var totalRevenue = 0L
+        var totalOrders = 0
+        if (cursor.moveToFirst()) {
+            totalRevenue = cursor.getLong(0)
+            totalOrders = cursor.getInt(1)
+        }
+        cursor.close()
+        val avgOrder = if (totalOrders > 0) totalRevenue / totalOrders else 0L
+        return Triple(totalRevenue, totalOrders, avgOrder)
+    }
+
+    fun getOrderStatusDistribution(month: Int?, year: Int?): Map<String, Int> {
+        val db = readableDatabase
+        var query = "SELECT status, COUNT(*) FROM $TABLE_ORDERS WHERE 1=1"
+        val args = mutableListOf<String>()
+        if (month != null && month != 0) {
+            query += " AND strftime('%m', created_at) = ?"
+            args.add(String.format("%02d", month))
+        }
+        if (year != null && year != 0) {
+            query += " AND strftime('%Y', created_at) = ?"
+            args.add(year.toString())
+        }
+        query += " GROUP BY status"
+        val cursor = db.rawQuery(query, args.toTypedArray())
+        val result = mutableMapOf<String, Int>()
+        if (cursor.moveToFirst()) {
+            do {
+                result[cursor.getString(0)] = cursor.getInt(1)
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return result
+    }
+
+    fun getTopSellingProducts(limit: Int, month: Int?, year: Int?): List<Pair<String, Int>> {
+        val db = readableDatabase
+        var query = """
+        SELECT p.$PROD_NAME, SUM(oi.quantity) as total_qty
+        FROM $TABLE_ORDER_ITEMS oi
+        JOIN $TABLE_PRODUCTS p ON oi.product_id = p.$PROD_ID
+        JOIN $TABLE_ORDERS o ON oi.order_id = o.id
+        WHERE o.status != 'CANCELLED'
+    """.trimIndent()
+        val args = mutableListOf<String>()
+        if (month != null && month != 0) {
+            query += " AND strftime('%m', o.created_at) = ?"
+            args.add(String.format("%02d", month))
+        }
+        if (year != null && year != 0) {
+            query += " AND strftime('%Y', o.created_at) = ?"
+            args.add(year.toString())
+        }
+        query += " GROUP BY oi.product_id ORDER BY total_qty DESC LIMIT ?"
+        args.add(limit.toString())
+        val cursor = db.rawQuery(query, args.toTypedArray())
+        val list = mutableListOf<Pair<String, Int>>()
+        if (cursor.moveToFirst()) {
+            do { list.add(cursor.getString(0) to cursor.getInt(1)) } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return list
+    }
+
+    fun getRevenueByCategory(month: Int?, year: Int?): List<Pair<String, Long>> {
+        val db = readableDatabase
+        var query = """
+        SELECT c.$CAT_NAME, SUM(oi.subtotal) as cat_revenue
+        FROM $TABLE_ORDER_ITEMS oi
+        JOIN $TABLE_PRODUCTS p ON oi.product_id = p.$PROD_ID
+        JOIN $TABLE_CATEGORIES c ON p.$PROD_CATEGORY_ID = c.$CAT_ID
+        JOIN $TABLE_ORDERS o ON oi.order_id = o.id
+        WHERE o.status != 'CANCELLED'
+    """.trimIndent()
+        val args = mutableListOf<String>()
+        if (month != null && month != 0) {
+            query += " AND strftime('%m', o.created_at) = ?"
+            args.add(String.format("%02d", month))
+        }
+        if (year != null && year != 0) {
+            query += " AND strftime('%Y', o.created_at) = ?"
+            args.add(year.toString())
+        }
+        query += " GROUP BY c.$CAT_ID ORDER BY cat_revenue DESC"
+        val cursor = db.rawQuery(query, args.toTypedArray())
+        val list = mutableListOf<Pair<String, Long>>()
+        if (cursor.moveToFirst()) {
+            do { list.add(cursor.getString(0) to cursor.getLong(1)) } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return list
+    }
+
+    fun getDailyRevenue(month: Int?, year: Int?): List<Pair<String, Long>> {
+        val db = readableDatabase
+        var query = """
+        SELECT DATE(created_at) as day, SUM(total_amount) as rev
+        FROM $TABLE_ORDERS
+        WHERE status != 'CANCELLED'
+    """.trimIndent()
+        val args = mutableListOf<String>()
+        if (month != null && month != 0) {
+            query += " AND strftime('%m', created_at) = ?"
+            args.add(String.format("%02d", month))
+        }
+        if (year != null && year != 0) {
+            query += " AND strftime('%Y', created_at) = ?"
+            args.add(year.toString())
+        }
+        query += " GROUP BY day ORDER BY day ASC"
+        val cursor = db.rawQuery(query, args.toTypedArray())
+        val list = mutableListOf<Pair<String, Long>>()
+        if (cursor.moveToFirst()) {
+            do { list.add(cursor.getString(0) to cursor.getLong(1)) } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return list
+    }
     fun getRecentOrders(limit: Int): List<Order> {
         val list = mutableListOf<Order>()
         val db = readableDatabase
