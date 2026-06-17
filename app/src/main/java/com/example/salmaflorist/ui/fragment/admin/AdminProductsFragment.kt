@@ -11,6 +11,8 @@ import android.widget.ArrayAdapter
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.salmaflorist.R
 import com.example.salmaflorist.data.DBOpenHelper
 import com.example.salmaflorist.databinding.FragmentAdminProductsBinding
@@ -99,7 +101,15 @@ class AdminProductsFragment : Fragment() {
                 
                 // Enhanced image loading logic
                 val imageSource = product.image
-                if (imageSource.startsWith("content://") || imageSource.startsWith("file://")) {
+                if (imageSource.startsWith("http://") || imageSource.startsWith("https://")) {
+                    // Load from URL (Cloudinary or other web URL)
+                    Glide.with(this@AdminProductsFragment)
+                        .load(imageSource)
+                        .placeholder(R.drawable.placeholder_flower)
+                        .error(R.drawable.placeholder_flower)
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .into(ivProduct)
+                } else if (imageSource.startsWith("content://") || imageSource.startsWith("file://")) {
                     try {
                         ivProduct.setImageURI(android.net.Uri.parse(imageSource))
                     } catch (e: SecurityException) {

@@ -4,6 +4,8 @@ import android.net.Uri
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.salmaflorist.R
 import com.example.salmaflorist.databinding.ItemOrderDetailProductBinding
 import com.example.salmaflorist.model.OrderItem
@@ -33,7 +35,15 @@ class OrderDetailProductAdapter(private val items: List<Pair<OrderItem, Product>
             tvSubtotal.text = formatter.format(item.subTotal).replace("Rp", "Rp ")
 
             val imageSource = product.image
-            if (imageSource.startsWith("content://") || imageSource.startsWith("file://")) {
+            if (imageSource.startsWith("http://") || imageSource.startsWith("https://")) {
+                // Load from URL (Cloudinary or other web URL)
+                Glide.with(context)
+                    .load(imageSource)
+                    .placeholder(R.drawable.bunga1)
+                    .error(R.drawable.bunga1)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .into(ivProduct)
+            } else if (imageSource.startsWith("content://") || imageSource.startsWith("file://")) {
                 try {
                     ivProduct.setImageURI(Uri.parse(imageSource))
                 } catch (e: SecurityException) {

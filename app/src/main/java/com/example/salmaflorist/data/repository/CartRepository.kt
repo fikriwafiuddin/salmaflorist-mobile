@@ -26,7 +26,7 @@ class CartRepository(private val tokenProvider: () -> String) {
         return try {
             withContext(Dispatchers.IO) {
                 val response = apiService.getCart()
-                Log.d(TAG, "Cart response: ${response.code()}")
+                Log.d(TAG, "Cart response code: ${response.code()}")
 
                 when {
                     response.isSuccessful && response.body() != null -> {
@@ -37,7 +37,7 @@ class CartRepository(private val tokenProvider: () -> String) {
                             Log.d(TAG, "Successfully fetched cart with ${items.size} items")
                             ApiResult.Success(cart)
                         } else {
-                            Log.e(TAG, "Cart response body is null")
+                            Log.e(TAG, "Cart is null in response")
                             ApiResult.Error("Gagal memuat keranjang: Data kosong")
                         }
                     }
@@ -66,26 +66,20 @@ class CartRepository(private val tokenProvider: () -> String) {
 
     /**
      * Tambah item ke keranjang
+     * Returns Unit (no data) - caller should reload cart
      */
-    suspend fun addCartItem(productId: Int, quantity: Int): ApiResult<CartDto> {
+    suspend fun addCartItem(productId: Int, quantity: Int): ApiResult<Unit> {
         Log.d(TAG, "Adding item to cart - productId: $productId, quantity: $quantity")
 
         return try {
             withContext(Dispatchers.IO) {
                 val response = apiService.addCartItem(AddCartItemRequest(productId, quantity))
-                Log.d(TAG, "Add cart item response: ${response.code()}")
+                Log.d(TAG, "Add cart item response code: ${response.code()}")
 
                 when {
-                    response.isSuccessful && response.body() != null -> {
-                        val cartResponse = response.body()!!
-                        val cart = cartResponse.cart
-                        if (cart != null) {
-                            Log.d(TAG, "Successfully added item to cart")
-                            ApiResult.Success(cart)
-                        } else {
-                            Log.e(TAG, "Cart response body is null")
-                            ApiResult.Error("Gagal menambah item: Data kosong")
-                        }
+                    response.isSuccessful -> {
+                        Log.d(TAG, "Successfully added item to cart")
+                        ApiResult.Success(Unit)
                     }
                     response.code() == 401 -> {
                         Log.w(TAG, "Unauthorized - token invalid")
@@ -116,26 +110,20 @@ class CartRepository(private val tokenProvider: () -> String) {
 
     /**
      * Update quantity item keranjang
+     * Returns Unit (no data) - caller should reload cart
      */
-    suspend fun updateCartItem(itemId: Int, quantity: Int): ApiResult<CartDto> {
+    suspend fun updateCartItem(itemId: Int, quantity: Int): ApiResult<Unit> {
         Log.d(TAG, "Updating cart item - itemId: $itemId, quantity: $quantity")
 
         return try {
             withContext(Dispatchers.IO) {
                 val response = apiService.updateCartItem(itemId, UpdateCartItemRequest(quantity))
-                Log.d(TAG, "Update cart item response: ${response.code()}")
+                Log.d(TAG, "Update cart item response code: ${response.code()}")
 
                 when {
-                    response.isSuccessful && response.body() != null -> {
-                        val cartResponse = response.body()!!
-                        val cart = cartResponse.cart
-                        if (cart != null) {
-                            Log.d(TAG, "Successfully updated cart item")
-                            ApiResult.Success(cart)
-                        } else {
-                            Log.e(TAG, "Cart response body is null")
-                            ApiResult.Error("Gagal update item: Data kosong")
-                        }
+                    response.isSuccessful -> {
+                        Log.d(TAG, "Successfully updated cart item")
+                        ApiResult.Success(Unit)
                     }
                     response.code() == 401 -> {
                         Log.w(TAG, "Unauthorized - token invalid")
@@ -166,26 +154,20 @@ class CartRepository(private val tokenProvider: () -> String) {
 
     /**
      * Hapus item dari keranjang
+     * Returns Unit (no data) - caller should reload cart
      */
-    suspend fun deleteCartItem(itemId: Int): ApiResult<CartDto> {
+    suspend fun deleteCartItem(itemId: Int): ApiResult<Unit> {
         Log.d(TAG, "Deleting cart item - itemId: $itemId")
 
         return try {
             withContext(Dispatchers.IO) {
                 val response = apiService.deleteCartItem(itemId)
-                Log.d(TAG, "Delete cart item response: ${response.code()}")
+                Log.d(TAG, "Delete cart item response code: ${response.code()}")
 
                 when {
-                    response.isSuccessful && response.body() != null -> {
-                        val cartResponse = response.body()!!
-                        val cart = cartResponse.cart
-                        if (cart != null) {
-                            Log.d(TAG, "Successfully deleted cart item")
-                            ApiResult.Success(cart)
-                        } else {
-                            Log.e(TAG, "Cart response body is null")
-                            ApiResult.Error("Gagal menghapus item: Data kosong")
-                        }
+                    response.isSuccessful -> {
+                        Log.d(TAG, "Successfully deleted cart item")
+                        ApiResult.Success(Unit)
                     }
                     response.code() == 401 -> {
                         Log.w(TAG, "Unauthorized - token invalid")
@@ -219,7 +201,7 @@ class CartRepository(private val tokenProvider: () -> String) {
         return try {
             withContext(Dispatchers.IO) {
                 val response = apiService.clearCart()
-                Log.d(TAG, "Clear cart response: ${response.code()}")
+                Log.d(TAG, "Clear cart response code: ${response.code()}")
 
                 when {
                     response.isSuccessful && response.body() != null -> {
@@ -258,6 +240,7 @@ class CartRepository(private val tokenProvider: () -> String) {
                 gson.fromJson(jsonString, ErrorResponse::class.java)
             }
         } catch (e: Exception) {
+            Log.e(TAG, "Failed to parse error: ${e.message}")
             ErrorResponse("Terjadi kesalahan pada server")
         }
     }

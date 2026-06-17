@@ -88,7 +88,7 @@ interface ApiService {
      * Membutuhkan auth token
      */
     @GET("carts")
-    suspend fun getCart(): Response<CartResponse>
+    suspend fun getCart(): Response<GetCartResponse>
 
     /**
      * Tambah item ke keranjang
@@ -98,7 +98,7 @@ interface ApiService {
     @POST("carts")
     suspend fun addCartItem(
         @Body request: AddCartItemRequest
-    ): Response<CartResponse>
+    ): Response<AddCartResponse>
 
     /**
      * Update quantity item keranjang
@@ -109,7 +109,7 @@ interface ApiService {
     suspend fun updateCartItem(
         @Path("itemId") itemId: Int,
         @Body request: UpdateCartItemRequest
-    ): Response<CartResponse>
+    ): Response<UpdateCartResponse>
 
     /**
      * Hapus item dari keranjang
@@ -119,7 +119,7 @@ interface ApiService {
     @DELETE("carts/{itemId}")
     suspend fun deleteCartItem(
         @Path("itemId") itemId: Int
-    ): Response<CartResponse>
+    ): Response<DeleteCartResponse>
 
     /**
      * Kosongkan keranjang
@@ -127,7 +127,7 @@ interface ApiService {
      * Membutuhkan auth token
      */
     @DELETE("carts")
-    suspend fun clearCart(): Response<CartResponse>
+    suspend fun clearCart(): Response<ClearCartResponse>
 
     // ==================== ORDERS ====================
 
@@ -153,6 +153,17 @@ interface ApiService {
         @Path("id") id: Int
     ): Response<OrderDetailResponse>
 
+    /**
+     * Buat pesanan baru (Checkout)
+     * POST /orders
+     * Membutuhkan auth token
+     * Mengembalikan order detail dan redirectUrl untuk pembayaran Midtrans
+     */
+    @POST("orders")
+    suspend fun createOrder(
+        @Body request: CreateOrderRequest
+    ): Response<CreateOrderResponse>
+
     // ==================== DESTINATIONS ====================
 
     /**
@@ -160,7 +171,7 @@ interface ApiService {
      * GET /destinations/provinces
      */
     @GET("destinations/provinces")
-    suspend fun getProvinces(): Response<List<ProvinceDto>>
+    suspend fun getProvinces(): Response<ProvincesResponse>
 
     /**
      * Get kota berdasarkan provinsi
@@ -168,8 +179,8 @@ interface ApiService {
      */
     @GET("destinations/cities")
     suspend fun getCities(
-        @Query("provinceId") provinceId: String
-    ): Response<List<CityDto>>
+        @Query("province") province: String
+    ): Response<CitiesResponse>
 
     /**
      * Get kecamatan berdasarkan kota
@@ -177,8 +188,8 @@ interface ApiService {
      */
     @GET("destinations/districts")
     suspend fun getDistricts(
-        @Query("cityId") cityId: String
-    ): Response<List<DistrictDto>>
+        @Query("city") city: String
+    ): Response<DistrictsResponse>
 
     /**
      * Hitung ongkos kirim
@@ -186,6 +197,7 @@ interface ApiService {
      */
     @GET("destinations/costs")
     suspend fun getShippingCosts(
-        @Query("districtId") districtId: String
-    ): Response<List<ShippingCostDto>>
+        @Query("destination") destination: String,
+        @Query("weight") weight: Int
+    ): Response<ShippingCostsResponse>
 }

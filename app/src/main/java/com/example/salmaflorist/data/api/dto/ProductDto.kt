@@ -130,6 +130,8 @@ data class CartDto(
 data class CartItemDto(
     @SerializedName("id")
     val id: Int,
+    @SerializedName("cartId")
+    val cartId: Int,
     @SerializedName("productId")
     val productId: Int,
     @SerializedName("quantity")
@@ -139,13 +141,45 @@ data class CartItemDto(
 )
 
 /**
- * Response setelah operasi cart (tambah/update/delete)
+ * Response setelah kosongkan keranjang
  */
-data class CartResponse(
-    @SerializedName("cart")
-    val cart: CartDto? = null,
+data class ClearCartResponse(
     @SerializedName("message")
     val message: String? = null
+)
+
+// ==================== CART RESPONSE DTOS ====================
+
+/**
+ * Response dari GET /carts
+ */
+data class GetCartResponse(
+    @SerializedName("cart")
+    val cart: CartDto? = null
+)
+
+/**
+ * Response dari POST /carts (tambah item) - returns cartItem not cart
+ */
+data class AddCartResponse(
+    @SerializedName("cartItem")
+    val cartItem: CartItemDto? = null
+)
+
+/**
+ * Response dari PUT /carts/{itemId} (update quantity) - returns cartItem not cart
+ */
+data class UpdateCartResponse(
+    @SerializedName("cartItem")
+    val cartItem: CartItemDto? = null
+)
+
+/**
+ * Response dari DELETE /carts/{itemId} (hapus item) - returns cartItem not cart
+ */
+data class DeleteCartResponse(
+    @SerializedName("cartItem")
+    val cartItem: CartItemDto? = null
 )
 
 /**
@@ -340,6 +374,103 @@ data class ShippingCostDto(
     val cost: Int,
     @SerializedName("etd")
     val etd: String
+)
+
+// ==================== DESTINATION RESPONSE DTOS ====================
+
+/**
+ * Response dari GET /destinations/provinces
+ */
+data class ProvincesResponse(
+    @SerializedName("provinces")
+    val provinces: List<ProvinceDto>? = null,
+    @SerializedName("data")
+    val data: List<ProvinceDto>? = null
+) {
+    fun extractProvinces() = provinces ?: data ?: emptyList()
+}
+
+/**
+ * Response dari GET /destinations/cities
+ */
+data class CitiesResponse(
+    @SerializedName("cities")
+    val cities: List<CityDto>? = null,
+    @SerializedName("data")
+    val data: List<CityDto>? = null
+) {
+    fun extractCities() = cities ?: data ?: emptyList()
+}
+
+/**
+ * Response dari GET /destinations/districts
+ */
+data class DistrictsResponse(
+    @SerializedName("districts")
+    val districts: List<DistrictDto>? = null,
+    @SerializedName("data")
+    val data: List<DistrictDto>? = null
+) {
+    fun extractDistricts() = districts ?: data ?: emptyList()
+}
+
+/**
+ * Response dari GET /destinations/costs
+ */
+data class ShippingCostsResponse(
+    @SerializedName("costs")
+    val costs: List<ShippingCostDto>? = null,
+    @SerializedName("data")
+    val data: List<ShippingCostDto>? = null
+) {
+    fun extractCosts() = costs ?: data ?: emptyList()
+}
+
+// ==================== ORDER CREATE DTOS ====================
+
+/**
+ * Request untuk membuat pesanan baru (Checkout)
+ */
+data class CreateOrderRequest(
+    @SerializedName("address")
+    val address: AddressRequest,
+    @SerializedName("courierCode")
+    val courierCode: String,
+    @SerializedName("courierService")
+    val courierService: String
+)
+
+/**
+ * Data alamat untuk request create order
+ */
+data class AddressRequest(
+    @SerializedName("customerName")
+    val customerName: String,
+    @SerializedName("whatsappNumber")
+    val whatsappNumber: String,
+    @SerializedName("provinceId")
+    val provinceId: String,
+    @SerializedName("cityId")
+    val cityId: String,
+    @SerializedName("districtId")
+    val districtId: String,
+    @SerializedName("postalCode")
+    val postalCode: String,
+    @SerializedName("addressDetail")
+    val addressDetail: String
+)
+
+/**
+ * Response dari POST /orders (create order)
+ * Mengembalikan order detail, payment token, dan redirect URL untuk Midtrans
+ */
+data class CreateOrderResponse(
+    @SerializedName("order")
+    val order: OrderDetailDto,
+    @SerializedName("paymentToken")
+    val paymentToken: String? = null,
+    @SerializedName("redirectUrl")
+    val redirectUrl: String? = null
 )
 
 /**

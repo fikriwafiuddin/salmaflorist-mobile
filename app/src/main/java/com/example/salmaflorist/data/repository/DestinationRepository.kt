@@ -29,7 +29,8 @@ class DestinationRepository {
 
                 when {
                     response.isSuccessful && response.body() != null -> {
-                        val provinces = response.body()!!
+                        val provincesResponse = response.body()!!
+                        val provinces = provincesResponse.extractProvinces()
                         Log.d(TAG, "Successfully fetched ${provinces.size} provinces")
                         ApiResult.Success(provinces)
                     }
@@ -55,17 +56,18 @@ class DestinationRepository {
     /**
      * Get kota berdasarkan provinsi
      */
-    suspend fun getCities(provinceId: String): ApiResult<List<CityDto>> {
-        Log.d(TAG, "Fetching cities for provinceId: $provinceId")
+    suspend fun getCities(province: String): ApiResult<List<CityDto>> {
+        Log.d(TAG, "Fetching cities for province: $province")
 
         return try {
             withContext(Dispatchers.IO) {
-                val response = apiService.getCities(provinceId)
+                val response = apiService.getCities(province)
                 Log.d(TAG, "Cities response: ${response.code()}")
 
                 when {
                     response.isSuccessful && response.body() != null -> {
-                        val cities = response.body()!!
+                        val citiesResponse = response.body()!!
+                        val cities = citiesResponse.extractCities()
                         Log.d(TAG, "Successfully fetched ${cities.size} cities")
                         ApiResult.Success(cities)
                     }
@@ -91,17 +93,18 @@ class DestinationRepository {
     /**
      * Get kecamatan berdasarkan kota
      */
-    suspend fun getDistricts(cityId: String): ApiResult<List<DistrictDto>> {
-        Log.d(TAG, "Fetching districts for cityId: $cityId")
+    suspend fun getDistricts(city: String): ApiResult<List<DistrictDto>> {
+        Log.d(TAG, "Fetching districts for city: $city")
 
         return try {
             withContext(Dispatchers.IO) {
-                val response = apiService.getDistricts(cityId)
+                val response = apiService.getDistricts(city)
                 Log.d(TAG, "Districts response: ${response.code()}")
 
                 when {
                     response.isSuccessful && response.body() != null -> {
-                        val districts = response.body()!!
+                        val districtsResponse = response.body()!!
+                        val districts = districtsResponse.extractDistricts()
                         Log.d(TAG, "Successfully fetched ${districts.size} districts")
                         ApiResult.Success(districts)
                     }
@@ -127,17 +130,18 @@ class DestinationRepository {
     /**
      * Get ongkos kirim
      */
-    suspend fun getShippingCosts(districtId: String): ApiResult<List<ShippingCostDto>> {
-        Log.d(TAG, "Fetching shipping costs for districtId: $districtId")
+    suspend fun getShippingCosts(destination: String, weight: Int): ApiResult<List<ShippingCostDto>> {
+        Log.d(TAG, "Fetching shipping costs for destination: $destination, weight: $weight")
 
         return try {
             withContext(Dispatchers.IO) {
-                val response = apiService.getShippingCosts(districtId)
+                val response = apiService.getShippingCosts(destination, weight)
                 Log.d(TAG, "Shipping costs response: ${response.code()}")
 
                 when {
                     response.isSuccessful && response.body() != null -> {
-                        val costs = response.body()!!
+                        val costsResponse = response.body()!!
+                        val costs = costsResponse.extractCosts()
                         Log.d(TAG, "Successfully fetched ${costs.size} shipping options")
                         ApiResult.Success(costs)
                     }

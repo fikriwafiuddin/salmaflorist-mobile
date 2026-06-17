@@ -152,8 +152,8 @@ class CartFragment : Fragment() {
                 val result = cartRepository?.updateCartItem(itemId, quantity)
                 when (result) {
                     is ApiResult.Success -> {
-                        cartItems = result.data.cartItems ?: emptyList()
-                        displayCart()
+                        // Reload cart after successful update
+                        loadCart()
                     }
                     is ApiResult.Error -> {
                         Toast.makeText(
@@ -173,8 +173,8 @@ class CartFragment : Fragment() {
             val result = cartRepository?.deleteCartItem(itemId)
             when (result) {
                 is ApiResult.Success -> {
-                    cartItems = result.data.cartItems ?: emptyList()
-                    displayCart()
+                    // Reload cart after successful delete
+                    loadCart()
                 }
                 is ApiResult.Error -> {
                     Toast.makeText(

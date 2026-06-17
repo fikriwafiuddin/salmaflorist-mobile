@@ -17,6 +17,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.salmaflorist.R
 import com.example.salmaflorist.data.DBOpenHelper
 import com.example.salmaflorist.databinding.FragmentAdminProductFormBinding
@@ -191,7 +193,15 @@ class AdminProductFormFragment : Fragment() {
     private fun displayImage(imageSource: String) {
         if (imageSource.isEmpty()) return
 
-        if (imageSource.startsWith("content://") || imageSource.startsWith("file://")) {
+        if (imageSource.startsWith("http://") || imageSource.startsWith("https://")) {
+            // Load from URL (Cloudinary or other web URL)
+            Glide.with(this@AdminProductFormFragment)
+                .load(imageSource)
+                .placeholder(R.drawable.placeholder_flower)
+                .error(R.drawable.placeholder_flower)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .into(binding.ivProductPreview)
+        } else if (imageSource.startsWith("content://") || imageSource.startsWith("file://")) {
             val uri = Uri.parse(imageSource)
             try {
                 binding.ivProductPreview.setImageURI(uri)
@@ -204,6 +214,8 @@ class AdminProductFormFragment : Fragment() {
             val resId = resources.getIdentifier(imageSource, "drawable", requireContext().packageName)
             if (resId != 0) {
                 binding.ivProductPreview.setImageResource(resId)
+            } else {
+                binding.ivProductPreview.setImageResource(R.drawable.placeholder_flower)
             }
         }
     }

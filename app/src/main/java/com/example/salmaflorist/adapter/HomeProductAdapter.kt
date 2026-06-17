@@ -7,6 +7,8 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.salmaflorist.data.DBOpenHelper
 import com.example.salmaflorist.R
 import com.example.salmaflorist.model.Product
@@ -55,13 +57,22 @@ class HomeProductAdapter(
         val context = holder.itemView.context
         val imageName = product.image
 
-        if (imageName.startsWith("content://") || imageName.startsWith("file://")) {
+        if (imageName.startsWith("http://") || imageName.startsWith("https://")) {
+            // Load from URL (Cloudinary or other web URL)
+            Glide.with(context)
+                .load(imageName)
+                .placeholder(R.drawable.placeholder_flower)
+                .error(R.drawable.placeholder_flower)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .into(holder.ivImage)
+        } else if (imageName.startsWith("content://") || imageName.startsWith("file://")) {
             try {
                 holder.ivImage.setImageURI(Uri.parse(imageName))
             } catch (e: SecurityException) {
                 holder.ivImage.setImageResource(R.drawable.placeholder_flower)
             }
         } else {
+            // Load from drawable resources
             val imageResId =
                 context.resources.getIdentifier(
                     imageName,

@@ -62,6 +62,71 @@ class OrderRepository(private val tokenProvider: () -> String) {
     }
 
     /**
+     * Buat pesanan baru (Checkout)
+     * Mengembalikan order detail dan redirectUrl untuk pembayaran Midtrans
+     */
+    suspend fun createOrder(
+        customerName: String,
+        whatsappNumber: String,
+        provinceId: String,
+        cityId: String,
+        districtId: String,
+        postalCode: String,
+        addressDetail: String,
+        courierCode: String,
+        courierService: String
+    ): ApiResult<CreateOrderResponse> {
+        Log.d(TAG, "Creating order - customer: $customerName, courier: $courierCode")
+
+        return try {
+            withContext(Dispatchers.IO) {
+                val request = CreateOrderRequest(
+                    address = AddressRequest(
+                        customerName = customerName,
+                        whatsappNumber = whatsappNumber,
+                        provinceId = provinceId,
+                        cityId = cityId,
+                        districtId = districtId,
+                        postalCode = postalCode,
+                        addressDetail = addressDetail
+                    ),
+                    courierCode = courierCode,
+                    courierService = courierService
+                )
+
+                val response = apiService.createOrder(request)
+                Log.d(TAG, "Create order response: ${response.code()}")
+
+                when {
+                    response.isSuccessful && response.body() != null -> {
+                        val createOrderResponse = response.body()!!
+                        Log.d(TAG, "Order created successfully: ${createOrderResponse.order.invoiceNumber}, redirectUrl: ${createOrderResponse.redirectUrl}")
+                        ApiResult.Success(createOrderResponse)
+                    }
+                    response.code() == 401 -> {
+                        Log.w(TAG, "Unauthorized - token invalid")
+                        ApiResult.Error("Sesi telah berakhir. Silakan login kembali.", statusCode = 401)
+                    }
+                    else -> {
+                        val error = parseError(response.errorBody()?.string())
+                        Log.e(TAG, "Failed to create order: ${error.message}")
+                        ApiResult.Error(
+                            message = error.message,
+                            statusCode = response.code()
+                        )
+                    }
+                }
+            }
+        } catch (e: IOException) {
+            Log.e(TAG, "Network error: ${e.message}", e)
+            ApiResult.Error("Koneksi internet bermasalah")
+        } catch (e: Exception) {
+            Log.e(TAG, "Unexpected error: ${e.message}", e)
+            ApiResult.Error("Terjadi kesalahan tak terduga")
+        }
+    }
+
+    /**
      * Get detail pesanan by ID
      */
     suspend fun getOrderById(id: Int): ApiResult<OrderDetailDto> {

@@ -4,6 +4,8 @@ import android.net.Uri
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.salmaflorist.R
 import com.example.salmaflorist.databinding.ItemCartBinding
 import com.example.salmaflorist.model.CartItem
@@ -43,13 +45,22 @@ class CartApiAdapter(
             val context = root.context
             val imageSource = item.product?.image ?: ""
 
-            if (imageSource.startsWith("content://") || imageSource.startsWith("file://")) {
+            if (imageSource.startsWith("http://") || imageSource.startsWith("https://")) {
+                // Load from URL (Cloudinary or other web URL)
+                Glide.with(context)
+                    .load(imageSource)
+                    .placeholder(R.drawable.placeholder_flower)
+                    .error(R.drawable.placeholder_flower)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .into(ivProductCart)
+            } else if (imageSource.startsWith("content://") || imageSource.startsWith("file://")) {
                 try {
                     ivProductCart.setImageURI(Uri.parse(imageSource))
                 } catch (e: SecurityException) {
                     ivProductCart.setImageResource(R.drawable.placeholder_flower)
                 }
             } else {
+                // Load from drawable resources
                 val imageResId = context.resources.getIdentifier(
                     imageSource,
                     "drawable",
