@@ -13,9 +13,14 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.example.salmaflorist.R
-import com.example.salmaflorist.data.DBOpenHelper
+import com.example.salmaflorist.data.api.dto.ApiResult
+import com.example.salmaflorist.data.repository.DashboardRepositoryProvider
 import com.example.salmaflorist.databinding.FragmentAdminReportsBinding
+import com.example.salmaflorist.util.SessionManager
+import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Calendar
 import java.util.Locale
@@ -24,7 +29,8 @@ class AdminReportsFragment : Fragment() {
 
     private var _binding: FragmentAdminReportsBinding? = null
     private val binding get() = _binding!!
-    private lateinit var db: DBOpenHelper
+    private lateinit var sessionManager: SessionManager
+    private lateinit var dashboardRepository: com.example.salmaflorist.data.repository.DashboardRepository
 
     private val localeID = Locale("in", "ID")
     private val currencyFormatter = NumberFormat.getCurrencyInstance(localeID)
@@ -55,17 +61,26 @@ class AdminReportsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        db = DBOpenHelper(requireContext())
+        sessionManager = SessionManager(requireContext())
+
+        // Initialize repository with token provider
+        dashboardRepository = DashboardRepositoryProvider.getInstance {
+            sessionManager.getToken() ?: ""
+        }
+
         setupFilters()
     }
 
     private fun setupFilters() {
-        val months = listOf(
+        // Month spinner with "Semua" option
+        val months = mutableListOf("Semua")
+        months.addAll(listOf(
             "Januari", "Februari", "Maret", "April", "Mei", "Juni",
             "Juli", "Agustus", "September", "Oktober", "November", "Desember"
-        )
+        ))
+
         val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-        val years = mutableListOf<String>()
+        val years = mutableListOf("Semua")
         for (y in currentYear downTo currentYear - 4) years.add(y.toString())
 
         binding.spinnerMonth.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, months)
@@ -76,10 +91,13 @@ class AdminReportsFragment : Fragment() {
 
         val filterListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                selectedMonth = if (binding.spinnerMonth.selectedItemPosition == 0) 0
-                else binding.spinnerMonth.selectedItemPosition
-                selectedYear = if (binding.spinnerYear.selectedItemPosition == 0) 0
-                else years[binding.spinnerYear.selectedItemPosition].toInt()
+                selectedMonth = binding.spinnerMonth.selectedItemPosition // 0 = "Semua"
+                selectedYear = if (binding.spinnerYear.selectedItemPosition == 0) {
+                    0 // "Semua"
+                } else {
+                    val yearStr = years[binding.spinnerYear.selectedItemPosition]
+                    yearStr.toIntOrNull() ?: 0
+                }
                 loadReportData()
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
@@ -88,111 +106,80 @@ class AdminReportsFragment : Fragment() {
         binding.spinnerMonth.onItemSelectedListener = filterListener
         binding.spinnerYear.onItemSelectedListener = filterListener
 
-        binding.spinnerMonth.setSelection(Calendar.getInstance().get(Calendar.MONTH) + 1)
-        binding.spinnerYear.setSelection(1)
+        // Set current month and year as default
+        binding.spinnerMonth.setSelection(Calendar.getInstance().get(Calendar.MONTH) + 1) // +1 because "Semua" is at index 0
+        binding.spinnerYear.setSelection(1) // Current year
     }
 
     private fun loadReportData() {
         val month = if (selectedMonth == 0) null else selectedMonth
-        val year  = if (selectedYear  == 0) null else selectedYear
+        val year = if (selectedYear == 0) null else selectedYear
 
-        loadSummary(month, year)
-        loadRevenueChart(month, year)
-        loadStatusDistribution(month, year)
-        loadTopProducts(month, year)
-        loadCategoryRevenue(month, year)
+        viewLifecycleOwner.lifecycleScope.launch {
+            val result = dashboardRepository.getDashboardReport(month, year)
+
+            when (result) {
+                is ApiResult.Success -> {
+                    val report = result.data
+                    displayReport(report)
+                }
+                is ApiResult.Error -> {
+                    showError(result.message)
+                    showEmptyStates()
+                }
+                is ApiResult.Loading -> {
+                    // Handle loading if needed
+                }
+            }
+        }
     }
 
-    private fun loadSummary(month: Int?, year: Int?) {
-        val (revenue, orders, avg) = db.getRevenueSummary(month, year)
-        binding.tvTotalRevenue.text = formatCurrency(revenue)
-        binding.tvTotalOrders.text  = orders.toString()
-        binding.tvAvgOrder.text     = formatCurrency(avg)
+    private fun displayReport(report: com.example.salmaflorist.data.repository.DashboardReportData) {
+        if (_binding == null) return
+
+        // Summary
+        binding.tvTotalRevenue.text = formatCurrency(report.totalRevenue.toLong())
+        binding.tvTotalOrders.text = report.completedOrders.toString()
+        val avgOrder = if (report.completedOrders > 0) {
+            report.totalRevenue / report.completedOrders
+        } else 0
+        binding.tvAvgOrder.text = formatCurrency(avgOrder.toLong())
+
+        // Revenue Chart
+        displayRevenueChart(report.revenueTrend)
+
+        // Status Distribution - Note: API doesn't provide this, so we'll skip for now
+        val container = binding.layoutStatusDistribution
+        container.removeAllViews()
+        container.addView(emptyStateText("Data distribusi status tidak tersedia"))
+
+        // Top Products
+        displayTopProducts(report.topProducts)
+
+        // Category Revenue
+        displayCategoryRevenue(report.topCategories)
     }
 
-    private fun loadRevenueChart(month: Int?, year: Int?) {
-        val dailyData = db.getDailyRevenue(month, year)
-        val points = dailyData.map { (it.second / 1000).toInt() }
+    private fun displayRevenueChart(revenueTrend: List<com.example.salmaflorist.data.api.dto.RevenueTrendDto>) {
+        // Scale down to thousands for better visualization
+        val points = revenueTrend.map { (it.revenue / 1000).toInt() }
         binding.revenueChartView.setData(points)
     }
 
-    private fun loadStatusDistribution(month: Int?, year: Int?) {
-        val container = binding.layoutStatusDistribution
-        container.removeAllViews()
-
-        val dist = db.getOrderStatusDistribution(month, year)
-        if (dist.isEmpty()) {
-            container.addView(emptyStateText("Belum ada data pesanan"))
-            return
-        }
-
-        val total = dist.values.sum().toFloat()
-
-        dist.entries.sortedByDescending { it.value }.forEach { (status, count) ->
-            val pct = if (total > 0) (count / total * 100).toInt() else 0
-            val colorHex = statusColors[status] ?: "#E5E7EB"
-
-            val row = LinearLayout(requireContext()).apply {
-                orientation = LinearLayout.VERTICAL
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                ).also { it.bottomMargin = 10.dp }
-            }
-
-            val labelRow = LinearLayout(requireContext()).apply {
-                orientation = LinearLayout.HORIZONTAL
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                ).also { it.bottomMargin = 4.dp }
-            }
-
-            val tvStatus = TextView(requireContext()).apply {
-                text = status
-                textSize = 12f
-                setTextColor(ContextCompat.getColor(requireContext(), R.color.text_primary))
-                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-            }
-
-            val tvCount = TextView(requireContext()).apply {
-                text = "$count pesanan ($pct%)"
-                textSize = 12f
-                gravity = Gravity.END
-                setTextColor(ContextCompat.getColor(requireContext(), R.color.text_secondary))
-            }
-
-            labelRow.addView(tvStatus)
-            labelRow.addView(tvCount)
-
-            val progressBar = ProgressBar(requireContext(), null, android.R.attr.progressBarStyleHorizontal).apply {
-                max = 100
-                progress = pct
-                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 14.dp)
-                val layerDrawable = progressDrawable as? android.graphics.drawable.LayerDrawable
-                layerDrawable?.findDrawableByLayerId(android.R.id.progress)
-                    ?.setColorFilter(Color.parseColor(colorHex), android.graphics.PorterDuff.Mode.SRC_IN)
-            }
-
-            row.addView(labelRow)
-            row.addView(progressBar)
-            container.addView(row)
-        }
-    }
-
-    private fun loadTopProducts(month: Int?, year: Int?) {
+    private fun displayTopProducts(topProducts: List<com.example.salmaflorist.data.api.dto.TopProductDto>) {
         val container = binding.layoutTopProducts
         container.removeAllViews()
 
-        val topProducts = db.getTopSellingProducts(5, month, year)
         if (topProducts.isEmpty()) {
             container.addView(emptyStateText("Belum ada data penjualan"))
             return
         }
 
-        val maxQty = topProducts.maxOf { it.second }.coerceAtLeast(1)
+        val maxQty = topProducts.maxOf { it.totalQuantity }.coerceAtLeast(1)
 
-        topProducts.forEachIndexed { index, (name, qty) ->
+        topProducts.forEachIndexed { index, topProduct ->
+            val name = topProduct.product.name
+            val qty = topProduct.totalQuantity
             val pct = (qty.toFloat() / maxQty * 100).toInt()
             val barColor = barColors[index % barColors.size]
 
@@ -265,20 +252,21 @@ class AdminReportsFragment : Fragment() {
         }
     }
 
-    private fun loadCategoryRevenue(month: Int?, year: Int?) {
+    private fun displayCategoryRevenue(topCategories: List<com.example.salmaflorist.data.api.dto.TopCategoryDto>) {
         val container = binding.layoutCategoryRevenue
         container.removeAllViews()
 
-        val catData = db.getRevenueByCategory(month, year)
-        if (catData.isEmpty()) {
+        if (topCategories.isEmpty()) {
             container.addView(emptyStateText("Belum ada data kategori"))
             return
         }
 
-        val totalRev = catData.sumOf { it.second }.coerceAtLeast(1L)
+        val totalRev = topCategories.sumOf { it.totalQuantity.toLong() }.coerceAtLeast(1L) // Using quantity as proxy
 
-        catData.forEachIndexed { index, (catName, rev) ->
-            val pct = (rev.toFloat() / totalRev * 100).toInt()
+        topCategories.forEachIndexed { index, topCategory ->
+            val catName = topCategory.category.name
+            val qty = topCategory.totalQuantity
+            val pct = (qty.toFloat() / totalRev * 100).toInt()
             val barColor = barColors[index % barColors.size]
 
             val row = LinearLayout(requireContext()).apply {
@@ -303,8 +291,8 @@ class AdminReportsFragment : Fragment() {
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
             }
 
-            val tvCatRevenue = TextView(requireContext()).apply {
-                text = "${formatCurrency(rev)} ($pct%)"
+            val tvCatInfo = TextView(requireContext()).apply {
+                text = "$qty produk"
                 textSize = 12f
                 gravity = Gravity.END
                 setTextColor(ContextCompat.getColor(requireContext(), R.color.text_secondary))
@@ -312,10 +300,10 @@ class AdminReportsFragment : Fragment() {
 
             row.addView(dot)
             row.addView(tvCat)
-            row.addView(tvCatRevenue)
+            row.addView(tvCatInfo)
             container.addView(row)
 
-            if (index < catData.size - 1) {
+            if (index < topCategories.size - 1) {
                 val divider = View(requireContext()).apply {
                     layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 1)
                         .also { it.bottomMargin = 12.dp }
@@ -324,6 +312,24 @@ class AdminReportsFragment : Fragment() {
                 container.addView(divider)
             }
         }
+    }
+
+    private fun showEmptyStates() {
+        if (_binding == null) return
+
+        binding.tvTotalRevenue.text = formatCurrency(0)
+        binding.tvTotalOrders.text = "0"
+        binding.tvAvgOrder.text = formatCurrency(0)
+        binding.revenueChartView.setData(emptyList())
+
+        binding.layoutStatusDistribution.removeAllViews()
+        binding.layoutStatusDistribution.addView(emptyStateText("Tidak ada data"))
+
+        binding.layoutTopProducts.removeAllViews()
+        binding.layoutTopProducts.addView(emptyStateText("Tidak ada data"))
+
+        binding.layoutCategoryRevenue.removeAllViews()
+        binding.layoutCategoryRevenue.addView(emptyStateText("Tidak ada data"))
     }
 
     private fun formatCurrency(value: Long): String =
@@ -337,6 +343,12 @@ class AdminReportsFragment : Fragment() {
         layoutParams = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
         ).also { it.topMargin = 8.dp; it.bottomMargin = 8.dp }
+    }
+
+    private fun showError(message: String) {
+        if (_binding != null) {
+            Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
+        }
     }
 
     private val Int.dp: Int get() = (this * resources.displayMetrics.density).toInt()

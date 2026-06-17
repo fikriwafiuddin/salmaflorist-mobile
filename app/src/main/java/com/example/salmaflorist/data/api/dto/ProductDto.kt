@@ -51,6 +51,41 @@ data class CategoryDto(
 )
 
 /**
+ * Request untuk membuat kategori baru
+ */
+data class CreateCategoryRequest(
+    @SerializedName("name")
+    val name: String
+)
+
+/**
+ * Request untuk update kategori
+ */
+data class UpdateCategoryRequest(
+    @SerializedName("name")
+    val name: String
+)
+
+// ==================== PRODUCT REQUEST DTOS ====================
+
+/**
+ * Request part untuk membuat/update produk
+ * Digunakan bersama dengan MultipartBody untuk upload gambar
+ */
+data class ProductRequestPart(
+    @SerializedName("categoryId")
+    val categoryId: Int,
+    @SerializedName("name")
+    val name: String,
+    @SerializedName("price")
+    val price: Int,
+    @SerializedName("weight")
+    val weight: Int,
+    @SerializedName("description")
+    val description: String
+)
+
+/**
  * Data produk
  */
 data class ProductDto(
@@ -471,6 +506,16 @@ data class CreateOrderResponse(
     val paymentToken: String? = null,
     @SerializedName("redirectUrl")
     val redirectUrl: String? = null
+)
+
+/**
+ * Request untuk update status pesanan (ADMIN only)
+ */
+data class UpdateOrderStatusRequest(
+    @SerializedName("status")
+    val status: String,
+    @SerializedName("shippingNumber")
+    val shippingNumber: String? = null
 )
 
 /**

@@ -17,14 +17,19 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.salmaflorist.R
-import com.example.salmaflorist.data.DBOpenHelper
+import com.example.salmaflorist.data.api.dto.ApiResult
+import com.example.salmaflorist.data.api.dto.CategoryDto
+import com.example.salmaflorist.data.api.dto.ProductDto
+import com.example.salmaflorist.data.repository.ProductRepositoryProvider
 import com.example.salmaflorist.databinding.FragmentAdminProductFormBinding
-import com.example.salmaflorist.model.Category
+import com.example.salmaflorist.util.SessionManager
+import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.launch
 import java.io.File
-import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 import java.text.SimpleDateFormat
@@ -35,18 +40,19 @@ class AdminProductFormFragment : Fragment() {
 
     private var _binding: FragmentAdminProductFormBinding? = null
     private val binding get() = _binding!!
-    private lateinit var dbHelper: DBOpenHelper
+    private lateinit var sessionManager: SessionManager
+    private lateinit var productRepository: com.example.salmaflorist.data.repository.ProductRepository
     private var selectedImageUri: Uri? = null
     private var productId: Int = -1
-    private var categories: List<Category> = emptyList()
+    private var categories: List<CategoryDto> = emptyList()
     private var cameraImageFile: File? = null
 
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val uri = result.data?.data
             if (uri != null) {
-                selectedImageUri = copyUriToInternalStorage(uri)
-                binding.ivProductPreview.setImageURI(selectedImageUri)
+                selectedImageUri = uri
+                binding.ivProductPreview.setImageURI(uri)
             }
         }
     }
@@ -76,7 +82,7 @@ class AdminProductFormFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         productId = arguments?.getInt("PRODUCT_ID", -1) ?: -1
-        
+
         savedInstanceState?.getString("CAMERA_IMAGE_PATH")?.let {
             cameraImageFile = File(it)
         }
@@ -96,9 +102,41 @@ class AdminProductFormFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        dbHelper = DBOpenHelper(requireContext())
+        sessionManager = SessionManager(requireContext())
 
-        setupCategorySpinner()
+        // Initialize repository with token provider
+        productRepository = ProductRepositoryProvider.getInstance {
+            sessionManager.getToken() ?: ""
+        }
+
+        loadCategories()
+    }
+
+    private fun loadCategories() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val result = productRepository.getCategories()
+
+            when (result) {
+                is ApiResult.Success -> {
+                    categories = result.data
+                    setupCategorySpinner()
+                    setupUI()
+                }
+                is ApiResult.Error -> {
+                    showError(result.message)
+                    if (_binding != null) {
+                        parentFragmentManager.popBackStack()
+                    }
+                }
+                is ApiResult.Loading -> {
+                    // Handle loading if needed
+                }
+            }
+        }
+    }
+
+    private fun setupUI() {
+        if (_binding == null) return
 
         if (productId != -1) {
             binding.tvFormTitle.text = "Edit Produk"
@@ -119,26 +157,6 @@ class AdminProductFormFragment : Fragment() {
         }
     }
 
-    private fun copyUriToInternalStorage(uri: Uri): Uri? {
-        val inputStream: InputStream? = requireContext().contentResolver.openInputStream(uri)
-        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val fileName = "IMG_$timeStamp.jpg"
-        val file = File(requireContext().filesDir, fileName)
-        
-        try {
-            val outputStream: OutputStream = FileOutputStream(file)
-            inputStream?.use { input ->
-                outputStream.use { output ->
-                    input.copyTo(output)
-                }
-            }
-            return Uri.fromFile(file)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return null
-        }
-    }
-
     private fun openCamera() {
         if (ContextCompat.checkSelfPermission(
                 requireContext(),
@@ -155,7 +173,7 @@ class AdminProductFormFragment : Fragment() {
         val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         val storageDir = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         cameraImageFile = File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir)
-        
+
         val uri = FileProvider.getUriForFile(
             requireContext(),
             "com.example.salmaflorist.fileprovider",
@@ -165,33 +183,60 @@ class AdminProductFormFragment : Fragment() {
     }
 
     private fun setupCategorySpinner() {
-        categories = dbHelper.getAllCategories()
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, categories.map { it.name })
+        if (_binding == null) return
+
+        val adapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_spinner_item,
+            categories.map { it.name }
+        )
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.spinnerCategory.adapter = adapter
     }
 
     private fun loadProductData() {
-        val product = dbHelper.getProductById(productId)
-        product?.let {
-            binding.etName.setText(it.name)
-            binding.etPrice.setText(it.price.toString())
-            binding.etWeight.setText(it.weight.toString())
-            binding.etDescription.setText(it.description)
-            
-            // Set category selection
-            val categoryIndex = categories.indexOfFirst { cat -> cat.id == it.categoryId }
-            if (categoryIndex != -1) {
-                binding.spinnerCategory.setSelection(categoryIndex)
-            }
+        viewLifecycleOwner.lifecycleScope.launch {
+            val result = productRepository.getProductById(productId)
 
-            // Enhanced Image loading
-            displayImage(it.image)
+            when (result) {
+                is ApiResult.Success -> {
+                    val product = result.data
+                    displayProductData(product)
+                }
+                is ApiResult.Error -> {
+                    showError(result.message)
+                    if (_binding != null) {
+                        parentFragmentManager.popBackStack()
+                    }
+                }
+                is ApiResult.Loading -> {
+                    // Handle loading if needed
+                }
+            }
         }
     }
 
-    private fun displayImage(imageSource: String) {
-        if (imageSource.isEmpty()) return
+    private fun displayProductData(product: ProductDto) {
+        if (_binding == null) return
+
+        binding.etName.setText(product.name)
+        binding.etPrice.setText(product.price.toString())
+        binding.etWeight.setText(product.weight?.toString() ?: "")
+        binding.etDescription.setText(product.description ?: "")
+
+        // Set category selection
+        val categoryIndex = categories.indexOfFirst { cat -> cat.id == product.categoryId }
+        if (categoryIndex != -1) {
+            binding.spinnerCategory.setSelection(categoryIndex)
+        }
+
+        // Display image
+        displayImage(product.image)
+    }
+
+    private fun displayImage(imageSource: String?) {
+        if (_binding == null) return
+        if (imageSource.isNullOrEmpty()) return
 
         if (imageSource.startsWith("http://") || imageSource.startsWith("https://")) {
             // Load from URL (Cloudinary or other web URL)
@@ -210,7 +255,7 @@ class AdminProductFormFragment : Fragment() {
                 binding.ivProductPreview.setImageResource(R.drawable.placeholder_flower)
             }
         } else {
-            // Resource-based images from seed
+            // Resource-based images
             val resId = resources.getIdentifier(imageSource, "drawable", requireContext().packageName)
             if (resId != 0) {
                 binding.ivProductPreview.setImageResource(resId)
@@ -221,29 +266,79 @@ class AdminProductFormFragment : Fragment() {
     }
 
     private fun saveProduct() {
+        if (_binding == null) return
+
         val name = binding.etName.text.toString().trim()
         val price = binding.etPrice.text.toString().toIntOrNull() ?: 0
         val weight = binding.etWeight.text.toString().toIntOrNull() ?: 0
         val description = binding.etDescription.text.toString().trim()
         val categoryId = categories[binding.spinnerCategory.selectedItemPosition].id
-        val image = selectedImageUri?.toString() ?: "bunga1" // Default if none selected
 
-        if (name.isEmpty() || description.isEmpty() || price == 0) {
-            Toast.makeText(requireContext(), "Harap isi semua data dengan benar!", Toast.LENGTH_SHORT).show()
+        if (name.isEmpty()) {
+            Toast.makeText(requireContext(), "Nama produk harus diisi!", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (description.isEmpty()) {
+            Toast.makeText(requireContext(), "Deskripsi harus diisi!", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (price == 0) {
+            Toast.makeText(requireContext(), "Harga harus diisi!", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (weight == 0) {
+            Toast.makeText(requireContext(), "Berat harus diisi!", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val success = if (productId == -1) {
-            dbHelper.addProduct(categoryId, name, price, description, weight, image)
-        } else {
-            dbHelper.updateProduct(productId, categoryId, name, price, description, weight, image)
-        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            // Show loading
+            binding.btnSave.isEnabled = false
+            binding.btnSave.text = "Menyimpan..."
 
-        if (success) {
-            Toast.makeText(requireContext(), "Berhasil disimpan!", Toast.LENGTH_SHORT).show()
-            parentFragmentManager.popBackStack()
-        } else {
-            Toast.makeText(requireContext(), "Gagal menyimpan!", Toast.LENGTH_SHORT).show()
+            val result = if (productId == -1) {
+                productRepository.createProduct(
+                    categoryId = categoryId,
+                    name = name,
+                    price = price,
+                    weight = weight,
+                    description = description,
+                    imageUri = selectedImageUri,
+                    context = requireContext()
+                )
+            } else {
+                productRepository.updateProduct(
+                    id = productId,
+                    categoryId = categoryId,
+                    name = name,
+                    price = price,
+                    weight = weight,
+                    description = description,
+                    imageUri = selectedImageUri,
+                    context = requireContext()
+                )
+            }
+
+            when (result) {
+                is ApiResult.Success -> {
+                    Toast.makeText(requireContext(), "Berhasil disimpan!", Toast.LENGTH_SHORT).show()
+                    parentFragmentManager.popBackStack()
+                }
+                is ApiResult.Error -> {
+                    showError(result.message)
+                    binding.btnSave.isEnabled = true
+                    binding.btnSave.text = "Simpan"
+                }
+                is ApiResult.Loading -> {
+                    // Handle loading if needed
+                }
+            }
+        }
+    }
+
+    private fun showError(message: String) {
+        if (_binding != null) {
+            Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
         }
     }
 

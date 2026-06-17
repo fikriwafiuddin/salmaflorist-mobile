@@ -175,6 +175,76 @@ class OrderRepository(private val tokenProvider: () -> String) {
     }
 
     /**
+     * Update status pesanan (ADMIN only)
+     * @param id ID pesanan
+     * @param status Status baru (PENDING, PAID, PROCESSING, DELIVERED, COMPLETED, CANCELLED)
+     * @param shippingNumber Nomor resi (wajib untuk status DELIVERED)
+     * @return ApiResult<OrderDetailDto>
+     */
+    suspend fun updateOrderStatus(
+        id: Int,
+        status: String,
+        shippingNumber: String? = null
+    ): ApiResult<OrderDetailDto> {
+        Log.d(TAG, "Updating order $id status to $status")
+
+        return try {
+            withContext(Dispatchers.IO) {
+                val request = UpdateOrderStatusRequest(
+                    status = status.uppercase(),
+                    shippingNumber = shippingNumber
+                )
+
+                val response = apiService.updateOrderStatus(id, request)
+                Log.d(TAG, "Update order status response: ${response.code()}")
+
+                when {
+                    response.isSuccessful && response.body() != null -> {
+                        val order = response.body()!!.order
+                        Log.d(TAG, "Successfully updated order status: ${order.invoiceNumber} to ${order.status}")
+                        ApiResult.Success(order)
+                    }
+                    response.code() == 401 -> {
+                        Log.w(TAG, "Unauthorized - token invalid")
+                        ApiResult.Error("Sesi telah berakhir. Silakan login kembali.", statusCode = 401)
+                    }
+                    response.code() == 403 -> {
+                        Log.w(TAG, "Forbidden - not admin")
+                        ApiResult.Error("Anda tidak memiliki akses untuk mengupdate status pesanan", statusCode = 403)
+                    }
+                    response.code() == 404 -> {
+                        Log.w(TAG, "Order not found")
+                        ApiResult.Error("Pesanan tidak ditemukan", statusCode = 404)
+                    }
+                    response.code() == 400 -> {
+                        val error = parseError(response.errorBody()?.string())
+                        Log.w(TAG, "Validation error: ${error.message}")
+                        ApiResult.Error(
+                            message = error.message,
+                            errors = error.errors,
+                            statusCode = response.code()
+                        )
+                    }
+                    else -> {
+                        val error = parseError(response.errorBody()?.string())
+                        Log.e(TAG, "Failed to update order status: ${error.message}")
+                        ApiResult.Error(
+                            message = error.message,
+                            statusCode = response.code()
+                        )
+                    }
+                }
+            }
+        } catch (e: IOException) {
+            Log.e(TAG, "Network error: ${e.message}", e)
+            ApiResult.Error("Koneksi internet bermasalah")
+        } catch (e: Exception) {
+            Log.e(TAG, "Unexpected error: ${e.message}", e)
+            ApiResult.Error("Terjadi kesalahan tak terduga")
+        }
+    }
+
+    /**
      * Helper untuk mendapatkan status dalam format yang user-friendly
      */
     fun getStatusText(status: String): String {

@@ -52,15 +52,18 @@ class MainActivity : AppCompatActivity(), NavigationBarView.OnItemSelectedListen
         fragCart = CartFragment()
         fragProfile = ProfileFragment()
 
-        if (savedInstanceState == null) {
-            if (!sessionManager.isLoggedIn()) {
-                loadLoginFragment()
+        // Check login status and role (outside savedInstanceState check to handle app restart)
+        if (!sessionManager.isLoggedIn()) {
+            loadLoginFragment()
+        } else {
+            // Check if user is admin and redirect accordingly
+            if (sessionManager.getUserRole() == "ADMIN") {
+                val intent = Intent(this, AdminMainActivity::class.java)
+                startActivity(intent)
+                finish()
             } else {
-                if (sessionManager.getUserRole() == "admin") {
-                    val intent = Intent(this, AdminMainActivity::class.java)
-                    startActivity(intent)
-                    finish()
-                } else {
+                // User is logged in as regular user
+                if (savedInstanceState == null) {
                     showHomeFragment()
                 }
             }

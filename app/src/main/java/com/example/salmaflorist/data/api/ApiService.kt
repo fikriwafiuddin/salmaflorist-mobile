@@ -1,6 +1,8 @@
 package com.example.salmaflorist.data.api
 
 import com.example.salmaflorist.data.api.dto.*
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -56,6 +58,37 @@ interface ApiService {
         @Path("id") id: Int
     ): Response<CategoryDetailResponse>
 
+    /**
+     * Buat kategori baru (ADMIN only)
+     * POST /categories
+     * Membutuhkan auth token
+     */
+    @POST("categories")
+    suspend fun createCategory(
+        @Body request: CreateCategoryRequest
+    ): Response<CategoryDetailResponse>
+
+    /**
+     * Update kategori (ADMIN only)
+     * PUT /categories/{id}
+     * Membutuhkan auth token
+     */
+    @PUT("categories/{id}")
+    suspend fun updateCategory(
+        @Path("id") id: Int,
+        @Body request: UpdateCategoryRequest
+    ): Response<CategoryDetailResponse>
+
+    /**
+     * Hapus kategori (ADMIN only)
+     * DELETE /categories/{id}
+     * Membutuhkan auth token
+     */
+    @DELETE("categories/{id}")
+    suspend fun deleteCategory(
+        @Path("id") id: Int
+    ): Response<Unit>
+
     // ==================== PRODUCTS ====================
 
     /**
@@ -66,7 +99,7 @@ interface ApiService {
     @GET("products")
     suspend fun getProducts(
         @Query("categoryId") categoryId: Int? = null,
-        @Query("search") search: String? = null,
+        @Query("name") search: String? = null,
         @Query("page") page: Int? = null,
         @Query("limit") limit: Int? = null
     ): Response<ProductsResponse>
@@ -79,6 +112,51 @@ interface ApiService {
     suspend fun getProductById(
         @Path("id") id: Int
     ): Response<ProductDetailResponse>
+
+    /**
+     * Buat produk baru (ADMIN only)
+     * POST /products
+     * Membutuhkan auth token
+     * Menggunakan multipart/form-data untuk upload gambar
+     */
+    @Multipart
+    @POST("products")
+    suspend fun createProduct(
+        @Part("categoryId") categoryId: RequestBody,
+        @Part("name") name: RequestBody,
+        @Part("price") price: RequestBody,
+        @Part("weight") weight: RequestBody,
+        @Part("description") description: RequestBody,
+        @Part image: MultipartBody.Part?
+    ): Response<ProductDetailResponse>
+
+    /**
+     * Update produk (ADMIN only)
+     * PUT /products/{id}
+     * Membutuhkan auth token
+     * Menggunakan multipart/form-data untuk upload gambar
+     */
+    @Multipart
+    @PUT("products/{id}")
+    suspend fun updateProduct(
+        @Path("id") id: Int,
+        @Part("categoryId") categoryId: RequestBody,
+        @Part("name") name: RequestBody,
+        @Part("price") price: RequestBody,
+        @Part("weight") weight: RequestBody,
+        @Part("description") description: RequestBody,
+        @Part image: MultipartBody.Part?
+    ): Response<ProductDetailResponse>
+
+    /**
+     * Hapus produk (soft delete) (ADMIN only)
+     * DELETE /products/{id}
+     * Membutuhkan auth token
+     */
+    @DELETE("products/{id}")
+    suspend fun deleteProduct(
+        @Path("id") id: Int
+    ): Response<Unit>
 
     // ==================== CARTS ====================
 
@@ -163,6 +241,45 @@ interface ApiService {
     suspend fun createOrder(
         @Body request: CreateOrderRequest
     ): Response<CreateOrderResponse>
+
+    /**
+     * Update status pesanan (ADMIN only)
+     * PUT /orders/{id}/status
+     * Membutuhkan auth token
+     * @param id ID pesanan
+     * @param request Request berisi status dan shippingNumber (opsional)
+     */
+    @PUT("orders/{id}/status")
+    suspend fun updateOrderStatus(
+        @Path("id") id: Int,
+        @Body request: UpdateOrderStatusRequest
+    ): Response<OrderDetailResponse>
+
+    // ==================== DASHBOARD ====================
+
+    /**
+     * Get dashboard data untuk ADMIN
+     * GET /dashboard
+     * Membutuhkan auth token
+     * @param days Jumlah hari untuk data grafik (1-30, default: 7)
+     */
+    @GET("dashboard")
+    suspend fun getDashboard(
+        @Query("days") days: Int? = null
+    ): Response<DashboardResponse>
+
+    /**
+     * Get laporan bulanan untuk ADMIN
+     * GET /dashboard/report
+     * Membutuhkan auth token
+     * @param month Bulan (1-12), default: bulan saat ini
+     * @param year Tahun, default: tahun saat ini
+     */
+    @GET("dashboard/report")
+    suspend fun getDashboardReport(
+        @Query("month") month: Int? = null,
+        @Query("year") year: Int? = null
+    ): Response<DashboardReportResponse>
 
     // ==================== DESTINATIONS ====================
 
