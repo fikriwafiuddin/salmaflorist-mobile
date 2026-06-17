@@ -7,16 +7,16 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.salmaflorist.data.DBOpenHelper
 import com.example.salmaflorist.R
 import com.example.salmaflorist.model.Product
 import java.text.NumberFormat
 import java.util.Locale
 
-class HomeProductAdapter(
+class CatalogProductApiAdapter(
     private val products: List<Product>,
     private val onItemClick: (Product) -> Unit
-): RecyclerView.Adapter<HomeProductAdapter.ProductViewHolder>() {
+) : RecyclerView.Adapter<CatalogProductApiAdapter.ProductViewHolder>() {
+
     class ProductViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val ivImage: ImageView = view.findViewById(R.id.ivProductImage)
         val tvBadge: TextView = view.findViewById(R.id.tvCategoryBadge)
@@ -32,12 +32,6 @@ class HomeProductAdapter(
     }
 
     override fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
-        val displayMetrics = holder.itemView.context.resources.displayMetrics
-        val screenWidth = displayMetrics.widthPixels
-        val params = holder.itemView.layoutParams
-        params.width = (screenWidth * 0.45).toInt()
-
-        holder.itemView.layoutParams = params
         val product = products[position]
         holder.tvName.text = product.name
         holder.tvDesc.text = product.description
@@ -46,11 +40,9 @@ class HomeProductAdapter(
         holder.itemView.setOnClickListener { onItemClick(product) }
 
         val localeID = Locale("in", "ID")
-        val formatter =
-            NumberFormat.getCurrencyInstance(localeID)
-        holder.tvPrice.text =
-            formatter.format(product.price)
-                .replace("Rp", "Rp ")
+        val formatter = NumberFormat.getCurrencyInstance(localeID)
+        holder.tvPrice.text = formatter.format(product.price)
+            .replace("Rp", "Rp ")
 
         val context = holder.itemView.context
         val imageName = product.image
@@ -62,21 +54,16 @@ class HomeProductAdapter(
                 holder.ivImage.setImageResource(R.drawable.placeholder_flower)
             }
         } else {
-            val imageResId =
-                context.resources.getIdentifier(
-                    imageName,
-                    "drawable",
-                    context.packageName
-                )
+            val imageResId = context.resources.getIdentifier(
+                imageName,
+                "drawable",
+                context.packageName
+            )
 
             if (imageResId != 0) {
-                holder.ivImage.setImageResource(
-                    imageResId
-                )
+                holder.ivImage.setImageResource(imageResId)
             } else {
-                holder.ivImage.setImageResource(
-                    R.drawable.placeholder_flower
-                )
+                holder.ivImage.setImageResource(R.drawable.placeholder_flower)
             }
         }
     }

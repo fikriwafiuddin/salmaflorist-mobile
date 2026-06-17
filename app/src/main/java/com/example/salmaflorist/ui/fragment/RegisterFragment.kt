@@ -100,7 +100,7 @@ class RegisterFragment : Fragment() {
         showLoading(true)
 
         // Call API menggunakan coroutines
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             val result = authRepository.register(username, email, password)
 
             // Hide loading state
