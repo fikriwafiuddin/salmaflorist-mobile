@@ -3,6 +3,7 @@ package com.example.salmaflorist.data.repository
 import android.util.Log
 import com.example.salmaflorist.data.api.ApiConfig
 import com.example.salmaflorist.data.api.dto.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
@@ -27,37 +28,29 @@ class OrderRepository(private val tokenProvider: () -> String) {
     ): ApiResult<List<OrderDetailDto>> {
         Log.d(TAG, "Fetching orders - status: $status, year: $year, month: $month")
 
-        return try {
-            withContext(Dispatchers.IO) {
-                val response = apiService.getOrders(status, year, month)
-                Log.d(TAG, "Orders response: ${response.code()}")
+        return safeApiCall {
+            val response = apiService.getOrders(status, year, month)
+            Log.d(TAG, "Orders response: ${response.code()}")
 
-                when {
-                    response.isSuccessful && response.body() != null -> {
-                        val orders = response.body()!!.orders
-                        Log.d(TAG, "Successfully fetched ${orders.size} orders")
-                        ApiResult.Success(orders)
-                    }
-                    response.code() == 401 -> {
-                        Log.w(TAG, "Unauthorized - token invalid")
-                        ApiResult.Error("Sesi telah berakhir. Silakan login kembali.", statusCode = 401)
-                    }
-                    else -> {
-                        val error = parseError(response.errorBody()?.string())
-                        Log.e(TAG, "Failed to fetch orders: ${error.message}")
-                        ApiResult.Error(
-                            message = error.message,
-                            statusCode = response.code()
-                        )
-                    }
+            when {
+                response.isSuccessful && response.body() != null -> {
+                    val orders = response.body()!!.orders
+                    Log.d(TAG, "Successfully fetched ${orders.size} orders")
+                    ApiResult.Success(orders)
+                }
+                response.code() == 401 -> {
+                    Log.w(TAG, "Unauthorized - token invalid")
+                    ApiResult.Error("Sesi telah berakhir. Silakan login kembali.", statusCode = 401)
+                }
+                else -> {
+                    val error = parseError(response.errorBody()?.string())
+                    Log.e(TAG, "Failed to fetch orders: ${error.message}")
+                    ApiResult.Error(
+                        message = error.message,
+                        statusCode = response.code()
+                    )
                 }
             }
-        } catch (e: IOException) {
-            Log.e(TAG, "Network error: ${e.message}", e)
-            ApiResult.Error("Koneksi internet bermasalah")
-        } catch (e: Exception) {
-            Log.e(TAG, "Unexpected error: ${e.message}", e)
-            ApiResult.Error("Terjadi kesalahan tak terduga")
         }
     }
 
@@ -78,51 +71,43 @@ class OrderRepository(private val tokenProvider: () -> String) {
     ): ApiResult<CreateOrderResponse> {
         Log.d(TAG, "Creating order - customer: $customerName, courier: $courierCode")
 
-        return try {
-            withContext(Dispatchers.IO) {
-                val request = CreateOrderRequest(
-                    address = AddressRequest(
-                        customerName = customerName,
-                        whatsappNumber = whatsappNumber,
-                        provinceId = provinceId,
-                        cityId = cityId,
-                        districtId = districtId,
-                        postalCode = postalCode,
-                        addressDetail = addressDetail
-                    ),
-                    courierCode = courierCode,
-                    courierService = courierService
-                )
+        return safeApiCall {
+            val request = CreateOrderRequest(
+                address = AddressRequest(
+                    customerName = customerName,
+                    whatsappNumber = whatsappNumber,
+                    provinceId = provinceId,
+                    cityId = cityId,
+                    districtId = districtId,
+                    postalCode = postalCode,
+                    addressDetail = addressDetail
+                ),
+                courierCode = courierCode,
+                courierService = courierService
+            )
 
-                val response = apiService.createOrder(request)
-                Log.d(TAG, "Create order response: ${response.code()}")
+            val response = apiService.createOrder(request)
+            Log.d(TAG, "Create order response: ${response.code()}")
 
-                when {
-                    response.isSuccessful && response.body() != null -> {
-                        val createOrderResponse = response.body()!!
-                        Log.d(TAG, "Order created successfully: ${createOrderResponse.order.invoiceNumber}, redirectUrl: ${createOrderResponse.redirectUrl}")
-                        ApiResult.Success(createOrderResponse)
-                    }
-                    response.code() == 401 -> {
-                        Log.w(TAG, "Unauthorized - token invalid")
-                        ApiResult.Error("Sesi telah berakhir. Silakan login kembali.", statusCode = 401)
-                    }
-                    else -> {
-                        val error = parseError(response.errorBody()?.string())
-                        Log.e(TAG, "Failed to create order: ${error.message}")
-                        ApiResult.Error(
-                            message = error.message,
-                            statusCode = response.code()
-                        )
-                    }
+            when {
+                response.isSuccessful && response.body() != null -> {
+                    val createOrderResponse = response.body()!!
+                    Log.d(TAG, "Order created successfully: ${createOrderResponse.order.invoiceNumber}, redirectUrl: ${createOrderResponse.redirectUrl}")
+                    ApiResult.Success(createOrderResponse)
+                }
+                response.code() == 401 -> {
+                    Log.w(TAG, "Unauthorized - token invalid")
+                    ApiResult.Error("Sesi telah berakhir. Silakan login kembali.", statusCode = 401)
+                }
+                else -> {
+                    val error = parseError(response.errorBody()?.string())
+                    Log.e(TAG, "Failed to create order: ${error.message}")
+                    ApiResult.Error(
+                        message = error.message,
+                        statusCode = response.code()
+                    )
                 }
             }
-        } catch (e: IOException) {
-            Log.e(TAG, "Network error: ${e.message}", e)
-            ApiResult.Error("Koneksi internet bermasalah")
-        } catch (e: Exception) {
-            Log.e(TAG, "Unexpected error: ${e.message}", e)
-            ApiResult.Error("Terjadi kesalahan tak terduga")
         }
     }
 
@@ -132,45 +117,37 @@ class OrderRepository(private val tokenProvider: () -> String) {
     suspend fun getOrderById(id: Int): ApiResult<OrderDetailDto> {
         Log.d(TAG, "Fetching order detail for id: $id")
 
-        return try {
-            withContext(Dispatchers.IO) {
-                val response = apiService.getOrderById(id)
-                Log.d(TAG, "Order detail response: ${response.code()}")
+        return safeApiCall {
+            val response = apiService.getOrderById(id)
+            Log.d(TAG, "Order detail response: ${response.code()}")
 
-                when {
-                    response.isSuccessful && response.body() != null -> {
-                        val order = response.body()!!.order
-                        Log.d(TAG, "Successfully fetched order: ${order.invoiceNumber}")
-                        ApiResult.Success(order)
-                    }
-                    response.code() == 401 -> {
-                        Log.w(TAG, "Unauthorized - token invalid")
-                        ApiResult.Error("Sesi telah berakhir. Silakan login kembali.", statusCode = 401)
-                    }
-                    response.code() == 403 -> {
-                        Log.w(TAG, "Forbidden - not owner of this order")
-                        ApiResult.Error("Anda tidak memiliki akses ke pesanan ini", statusCode = 403)
-                    }
-                    response.code() == 404 -> {
-                        Log.w(TAG, "Order not found")
-                        ApiResult.Error("Pesanan tidak ditemukan", statusCode = 404)
-                    }
-                    else -> {
-                        val error = parseError(response.errorBody()?.string())
-                        Log.e(TAG, "Failed to fetch order: ${error.message}")
-                        ApiResult.Error(
-                            message = error.message,
-                            statusCode = response.code()
-                        )
-                    }
+            when {
+                response.isSuccessful && response.body() != null -> {
+                    val order = response.body()!!.order
+                    Log.d(TAG, "Successfully fetched order: ${order.invoiceNumber}")
+                    ApiResult.Success(order)
+                }
+                response.code() == 401 -> {
+                    Log.w(TAG, "Unauthorized - token invalid")
+                    ApiResult.Error("Sesi telah berakhir. Silakan login kembali.", statusCode = 401)
+                }
+                response.code() == 403 -> {
+                    Log.w(TAG, "Forbidden - not owner of this order")
+                    ApiResult.Error("Anda tidak memiliki akses ke pesanan ini", statusCode = 403)
+                }
+                response.code() == 404 -> {
+                    Log.w(TAG, "Order not found")
+                    ApiResult.Error("Pesanan tidak ditemukan", statusCode = 404)
+                }
+                else -> {
+                    val error = parseError(response.errorBody()?.string())
+                    Log.e(TAG, "Failed to fetch order: ${error.message}")
+                    ApiResult.Error(
+                        message = error.message,
+                        statusCode = response.code()
+                    )
                 }
             }
-        } catch (e: IOException) {
-            Log.e(TAG, "Network error: ${e.message}", e)
-            ApiResult.Error("Koneksi internet bermasalah")
-        } catch (e: Exception) {
-            Log.e(TAG, "Unexpected error: ${e.message}", e)
-            ApiResult.Error("Terjadi kesalahan tak terduga")
         }
     }
 
@@ -188,59 +165,51 @@ class OrderRepository(private val tokenProvider: () -> String) {
     ): ApiResult<OrderDetailDto> {
         Log.d(TAG, "Updating order $id status to $status")
 
-        return try {
-            withContext(Dispatchers.IO) {
-                val request = UpdateOrderStatusRequest(
-                    status = status.uppercase(),
-                    shippingNumber = shippingNumber
-                )
+        return safeApiCall {
+            val request = UpdateOrderStatusRequest(
+                status = status.uppercase(),
+                shippingNumber = shippingNumber
+            )
 
-                val response = apiService.updateOrderStatus(id, request)
-                Log.d(TAG, "Update order status response: ${response.code()}")
+            val response = apiService.updateOrderStatus(id, request)
+            Log.d(TAG, "Update order status response: ${response.code()}")
 
-                when {
-                    response.isSuccessful && response.body() != null -> {
-                        val order = response.body()!!.order
-                        Log.d(TAG, "Successfully updated order status: ${order.invoiceNumber} to ${order.status}")
-                        ApiResult.Success(order)
-                    }
-                    response.code() == 401 -> {
-                        Log.w(TAG, "Unauthorized - token invalid")
-                        ApiResult.Error("Sesi telah berakhir. Silakan login kembali.", statusCode = 401)
-                    }
-                    response.code() == 403 -> {
-                        Log.w(TAG, "Forbidden - not admin")
-                        ApiResult.Error("Anda tidak memiliki akses untuk mengupdate status pesanan", statusCode = 403)
-                    }
-                    response.code() == 404 -> {
-                        Log.w(TAG, "Order not found")
-                        ApiResult.Error("Pesanan tidak ditemukan", statusCode = 404)
-                    }
-                    response.code() == 400 -> {
-                        val error = parseError(response.errorBody()?.string())
-                        Log.w(TAG, "Validation error: ${error.message}")
-                        ApiResult.Error(
-                            message = error.message,
-                            errors = error.errors,
-                            statusCode = response.code()
-                        )
-                    }
-                    else -> {
-                        val error = parseError(response.errorBody()?.string())
-                        Log.e(TAG, "Failed to update order status: ${error.message}")
-                        ApiResult.Error(
-                            message = error.message,
-                            statusCode = response.code()
-                        )
-                    }
+            when {
+                response.isSuccessful && response.body() != null -> {
+                    val order = response.body()!!.order
+                    Log.d(TAG, "Successfully updated order status: ${order.invoiceNumber} to ${order.status}")
+                    ApiResult.Success(order)
+                }
+                response.code() == 401 -> {
+                    Log.w(TAG, "Unauthorized - token invalid")
+                    ApiResult.Error("Sesi telah berakhir. Silakan login kembali.", statusCode = 401)
+                }
+                response.code() == 403 -> {
+                    Log.w(TAG, "Forbidden - not admin")
+                    ApiResult.Error("Anda tidak memiliki akses untuk mengupdate status pesanan", statusCode = 403)
+                }
+                response.code() == 404 -> {
+                    Log.w(TAG, "Order not found")
+                    ApiResult.Error("Pesanan tidak ditemukan", statusCode = 404)
+                }
+                response.code() == 400 -> {
+                    val error = parseError(response.errorBody()?.string())
+                    Log.w(TAG, "Validation error: ${error.message}")
+                    ApiResult.Error(
+                        message = error.message,
+                        errors = error.errors,
+                        statusCode = response.code()
+                    )
+                }
+                else -> {
+                    val error = parseError(response.errorBody()?.string())
+                    Log.e(TAG, "Failed to update order status: ${error.message}")
+                    ApiResult.Error(
+                        message = error.message,
+                        statusCode = response.code()
+                    )
                 }
             }
-        } catch (e: IOException) {
-            Log.e(TAG, "Network error: ${e.message}", e)
-            ApiResult.Error("Koneksi internet bermasalah")
-        } catch (e: Exception) {
-            Log.e(TAG, "Unexpected error: ${e.message}", e)
-            ApiResult.Error("Terjadi kesalahan tak terduga")
         }
     }
 
@@ -283,6 +252,28 @@ class OrderRepository(private val tokenProvider: () -> String) {
             }
         } catch (e: Exception) {
             ErrorResponse("Terjadi kesalahan pada server")
+        }
+    }
+
+    /**
+     * Helper function untuk menangani exception dengan aman
+     * CancellationException akan di-rethrow agar coroutine tahu job dibatalkan
+     */
+    private suspend fun <T> safeApiCall(apiCall: suspend () -> ApiResult<T>): ApiResult<T> {
+        return try {
+            withContext(Dispatchers.IO) {
+                apiCall()
+            }
+        } catch (e: CancellationException) {
+            // Job was cancelled (user navigated away), re-throw
+            Log.d(TAG, "Job was cancelled")
+            throw e
+        } catch (e: IOException) {
+            Log.e(TAG, "Network error: ${e.message}", e)
+            ApiResult.Error("Koneksi internet bermasalah")
+        } catch (e: Exception) {
+            Log.e(TAG, "Unexpected error: ${e.message}", e)
+            ApiResult.Error("Terjadi kesalahan tak terduga")
         }
     }
 }

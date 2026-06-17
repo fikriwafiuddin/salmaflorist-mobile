@@ -3,6 +3,7 @@ package com.example.salmaflorist.data.repository
 import android.util.Log
 import com.example.salmaflorist.data.api.ApiConfig
 import com.example.salmaflorist.data.api.dto.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
@@ -59,6 +60,10 @@ class DashboardRepository(private val tokenProvider: () -> String) {
                     }
                 }
             }
+        } catch (e: CancellationException) {
+            // Job was cancelled (user navigated away), re-throw to let coroutine know
+            Log.d(TAG, "Job was cancelled")
+            throw e
         } catch (e: IOException) {
             Log.e(TAG, "Network error: ${e.message}", e)
             ApiResult.Error("Koneksi internet bermasalah")
@@ -119,6 +124,10 @@ class DashboardRepository(private val tokenProvider: () -> String) {
                     }
                 }
             }
+        } catch (e: CancellationException) {
+            // Job was cancelled (user navigated away), re-throw to let coroutine know
+            Log.d(TAG, "Job was cancelled")
+            throw e
         } catch (e: IOException) {
             Log.e(TAG, "Network error: ${e.message}", e)
             ApiResult.Error("Koneksi internet bermasalah")

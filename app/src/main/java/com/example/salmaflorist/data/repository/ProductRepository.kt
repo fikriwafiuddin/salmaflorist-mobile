@@ -5,6 +5,7 @@ import android.net.Uri
 import android.util.Log
 import com.example.salmaflorist.data.api.ApiConfig
 import com.example.salmaflorist.data.api.dto.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -30,33 +31,25 @@ class ProductRepository(private val tokenProvider: () -> String) {
     suspend fun getCategories(): ApiResult<List<CategoryDto>> {
         Log.d(TAG, "Fetching categories")
 
-        return try {
-            withContext(Dispatchers.IO) {
-                val response = apiService.getCategories()
-                Log.d(TAG, "Categories response: ${response.code()}")
+        return safeApiCall {
+            val response = apiService.getCategories()
+            Log.d(TAG, "Categories response: ${response.code()}")
 
-                when {
-                    response.isSuccessful && response.body() != null -> {
-                        val categories = response.body()!!.categories
-                        Log.d(TAG, "Successfully fetched ${categories.size} categories")
-                        ApiResult.Success(categories)
-                    }
-                    else -> {
-                        val error = parseError(response.errorBody()?.string())
-                        Log.e(TAG, "Failed to fetch categories: ${error.message}")
-                        ApiResult.Error(
-                            message = error.message,
-                            statusCode = response.code()
-                        )
-                    }
+            when {
+                response.isSuccessful && response.body() != null -> {
+                    val categories = response.body()!!.categories
+                    Log.d(TAG, "Successfully fetched ${categories.size} categories")
+                    ApiResult.Success(categories)
+                }
+                else -> {
+                    val error = parseError(response.errorBody()?.string())
+                    Log.e(TAG, "Failed to fetch categories: ${error.message}")
+                    ApiResult.Error(
+                        message = error.message,
+                        statusCode = response.code()
+                    )
                 }
             }
-        } catch (e: IOException) {
-            Log.e(TAG, "Network error: ${e.message}", e)
-            ApiResult.Error("Koneksi internet bermasalah")
-        } catch (e: Exception) {
-            Log.e(TAG, "Unexpected error: ${e.message}", e)
-            ApiResult.Error("Terjadi kesalahan tak terduga")
         }
     }
 
@@ -71,33 +64,25 @@ class ProductRepository(private val tokenProvider: () -> String) {
     ): ApiResult<List<ProductDto>> {
         Log.d(TAG, "Fetching products - categoryId: $categoryId, search: $search, page: $page")
 
-        return try {
-            withContext(Dispatchers.IO) {
-                val response = apiService.getProducts(categoryId, search, page, limit)
-                Log.d(TAG, "Products response: ${response.code()}")
+        return safeApiCall {
+            val response = apiService.getProducts(categoryId, search, page, limit)
+            Log.d(TAG, "Products response: ${response.code()}")
 
-                when {
-                    response.isSuccessful && response.body() != null -> {
-                        val products = response.body()!!.products
-                        Log.d(TAG, "Successfully fetched ${products.size} products")
-                        ApiResult.Success(products)
-                    }
-                    else -> {
-                        val error = parseError(response.errorBody()?.string())
-                        Log.e(TAG, "Failed to fetch products: ${error.message}")
-                        ApiResult.Error(
-                            message = error.message,
-                            statusCode = response.code()
-                        )
-                    }
+            when {
+                response.isSuccessful && response.body() != null -> {
+                    val products = response.body()!!.products
+                    Log.d(TAG, "Successfully fetched ${products.size} products")
+                    ApiResult.Success(products)
+                }
+                else -> {
+                    val error = parseError(response.errorBody()?.string())
+                    Log.e(TAG, "Failed to fetch products: ${error.message}")
+                    ApiResult.Error(
+                        message = error.message,
+                        statusCode = response.code()
+                    )
                 }
             }
-        } catch (e: IOException) {
-            Log.e(TAG, "Network error: ${e.message}", e)
-            ApiResult.Error("Koneksi internet bermasalah")
-        } catch (e: Exception) {
-            Log.e(TAG, "Unexpected error: ${e.message}", e)
-            ApiResult.Error("Terjadi kesalahan tak terduga")
         }
     }
 
@@ -107,37 +92,29 @@ class ProductRepository(private val tokenProvider: () -> String) {
     suspend fun getProductById(id: Int): ApiResult<ProductDto> {
         Log.d(TAG, "Fetching product detail for id: $id")
 
-        return try {
-            withContext(Dispatchers.IO) {
-                val response = apiService.getProductById(id)
-                Log.d(TAG, "Product detail response: ${response.code()}")
+        return safeApiCall {
+            val response = apiService.getProductById(id)
+            Log.d(TAG, "Product detail response: ${response.code()}")
 
-                when {
-                    response.isSuccessful && response.body() != null -> {
-                        val product = response.body()!!.product
-                        Log.d(TAG, "Successfully fetched product: ${product.name}")
-                        ApiResult.Success(product)
-                    }
-                    response.code() == 404 -> {
-                        Log.w(TAG, "Product not found")
-                        ApiResult.Error("Produk tidak ditemukan", statusCode = 404)
-                    }
-                    else -> {
-                        val error = parseError(response.errorBody()?.string())
-                        Log.e(TAG, "Failed to fetch product: ${error.message}")
-                        ApiResult.Error(
-                            message = error.message,
-                            statusCode = response.code()
-                        )
-                    }
+            when {
+                response.isSuccessful && response.body() != null -> {
+                    val product = response.body()!!.product
+                    Log.d(TAG, "Successfully fetched product: ${product.name}")
+                    ApiResult.Success(product)
+                }
+                response.code() == 404 -> {
+                    Log.w(TAG, "Product not found")
+                    ApiResult.Error("Produk tidak ditemukan", statusCode = 404)
+                }
+                else -> {
+                    val error = parseError(response.errorBody()?.string())
+                    Log.e(TAG, "Failed to fetch product: ${error.message}")
+                    ApiResult.Error(
+                        message = error.message,
+                        statusCode = response.code()
+                    )
                 }
             }
-        } catch (e: IOException) {
-            Log.e(TAG, "Network error: ${e.message}", e)
-            ApiResult.Error("Koneksi internet bermasalah")
-        } catch (e: Exception) {
-            Log.e(TAG, "Unexpected error: ${e.message}", e)
-            ApiResult.Error("Terjadi kesalahan tak terduga")
         }
     }
 
@@ -163,69 +140,61 @@ class ProductRepository(private val tokenProvider: () -> String) {
     ): ApiResult<ProductDto> {
         Log.d(TAG, "Creating product: $name")
 
-        return try {
-            withContext(Dispatchers.IO) {
-                // Prepare image part if provided
-                val imagePart = if (imageUri != null && context != null) {
-                    createMultipartBodyFromUri(imageUri, context)
-                } else null
+        return safeApiCall {
+            // Prepare image part if provided
+            val imagePart = if (imageUri != null && context != null) {
+                createMultipartBodyFromUri(imageUri, context)
+            } else null
 
-                // Create request parts
-                val categoryIdPart = categoryId.toString().toRequestBody(MEDIA_TYPE_TEXT)
-                val namePart = name.toRequestBody(MEDIA_TYPE_TEXT)
-                val pricePart = price.toString().toRequestBody(MEDIA_TYPE_TEXT)
-                val weightPart = weight.toString().toRequestBody(MEDIA_TYPE_TEXT)
-                val descriptionPart = description.toRequestBody(MEDIA_TYPE_TEXT)
+            // Create request parts
+            val categoryIdPart = categoryId.toString().toRequestBody(MEDIA_TYPE_TEXT)
+            val namePart = name.toRequestBody(MEDIA_TYPE_TEXT)
+            val pricePart = price.toString().toRequestBody(MEDIA_TYPE_TEXT)
+            val weightPart = weight.toString().toRequestBody(MEDIA_TYPE_TEXT)
+            val descriptionPart = description.toRequestBody(MEDIA_TYPE_TEXT)
 
-                val response = apiService.createProduct(
-                    categoryId = categoryIdPart,
-                    name = namePart,
-                    price = pricePart,
-                    weight = weightPart,
-                    description = descriptionPart,
-                    image = imagePart
-                )
-                Log.d(TAG, "Create product response: ${response.code()}")
+            val response = apiService.createProduct(
+                categoryId = categoryIdPart,
+                name = namePart,
+                price = pricePart,
+                weight = weightPart,
+                description = descriptionPart,
+                image = imagePart
+            )
+            Log.d(TAG, "Create product response: ${response.code()}")
 
-                when {
-                    response.isSuccessful && response.body() != null -> {
-                        val product = response.body()!!.product
-                        Log.d(TAG, "Successfully created product: ${product.name}")
-                        ApiResult.Success(product)
-                    }
-                    response.code() == 401 -> {
-                        Log.w(TAG, "Unauthorized - token invalid")
-                        ApiResult.Error("Sesi telah berakhir. Silakan login kembali.", statusCode = 401)
-                    }
-                    response.code() == 403 -> {
-                        Log.w(TAG, "Forbidden - not admin")
-                        ApiResult.Error("Anda tidak memiliki akses untuk membuat produk", statusCode = 403)
-                    }
-                    response.code() == 400 -> {
-                        val error = parseError(response.errorBody()?.string())
-                        Log.w(TAG, "Validation error: ${error.message}")
-                        ApiResult.Error(
-                            message = error.message,
-                            errors = error.errors,
-                            statusCode = response.code()
-                        )
-                    }
-                    else -> {
-                        val error = parseError(response.errorBody()?.string())
-                        Log.e(TAG, "Failed to create product: ${error.message}")
-                        ApiResult.Error(
-                            message = error.message,
-                            statusCode = response.code()
-                        )
-                    }
+            when {
+                response.isSuccessful && response.body() != null -> {
+                    val product = response.body()!!.product
+                    Log.d(TAG, "Successfully created product: ${product.name}")
+                    ApiResult.Success(product)
+                }
+                response.code() == 401 -> {
+                    Log.w(TAG, "Unauthorized - token invalid")
+                    ApiResult.Error("Sesi telah berakhir. Silakan login kembali.", statusCode = 401)
+                }
+                response.code() == 403 -> {
+                    Log.w(TAG, "Forbidden - not admin")
+                    ApiResult.Error("Anda tidak memiliki akses untuk membuat produk", statusCode = 403)
+                }
+                response.code() == 400 -> {
+                    val error = parseError(response.errorBody()?.string())
+                    Log.w(TAG, "Validation error: ${error.message}")
+                    ApiResult.Error(
+                        message = error.message,
+                        errors = error.errors,
+                        statusCode = response.code()
+                    )
+                }
+                else -> {
+                    val error = parseError(response.errorBody()?.string())
+                    Log.e(TAG, "Failed to create product: ${error.message}")
+                    ApiResult.Error(
+                        message = error.message,
+                        statusCode = response.code()
+                    )
                 }
             }
-        } catch (e: IOException) {
-            Log.e(TAG, "Network error: ${e.message}", e)
-            ApiResult.Error("Koneksi internet bermasalah")
-        } catch (e: Exception) {
-            Log.e(TAG, "Unexpected error: ${e.message}", e)
-            ApiResult.Error("Terjadi kesalahan tak terduga")
         }
     }
 
@@ -253,74 +222,66 @@ class ProductRepository(private val tokenProvider: () -> String) {
     ): ApiResult<ProductDto> {
         Log.d(TAG, "Updating product $id: $name")
 
-        return try {
-            withContext(Dispatchers.IO) {
-                // Prepare image part if provided
-                val imagePart = if (imageUri != null && context != null) {
-                    createMultipartBodyFromUri(imageUri, context)
-                } else null
+        return safeApiCall {
+            // Prepare image part if provided
+            val imagePart = if (imageUri != null && context != null) {
+                createMultipartBodyFromUri(imageUri, context)
+            } else null
 
-                // Create request parts
-                val categoryIdPart = categoryId.toString().toRequestBody(MEDIA_TYPE_TEXT)
-                val namePart = name.toRequestBody(MEDIA_TYPE_TEXT)
-                val pricePart = price.toString().toRequestBody(MEDIA_TYPE_TEXT)
-                val weightPart = weight.toString().toRequestBody(MEDIA_TYPE_TEXT)
-                val descriptionPart = description.toRequestBody(MEDIA_TYPE_TEXT)
+            // Create request parts
+            val categoryIdPart = categoryId.toString().toRequestBody(MEDIA_TYPE_TEXT)
+            val namePart = name.toRequestBody(MEDIA_TYPE_TEXT)
+            val pricePart = price.toString().toRequestBody(MEDIA_TYPE_TEXT)
+            val weightPart = weight.toString().toRequestBody(MEDIA_TYPE_TEXT)
+            val descriptionPart = description.toRequestBody(MEDIA_TYPE_TEXT)
 
-                val response = apiService.updateProduct(
-                    id = id,
-                    categoryId = categoryIdPart,
-                    name = namePart,
-                    price = pricePart,
-                    weight = weightPart,
-                    description = descriptionPart,
-                    image = imagePart
-                )
-                Log.d(TAG, "Update product response: ${response.code()}")
+            val response = apiService.updateProduct(
+                id = id,
+                categoryId = categoryIdPart,
+                name = namePart,
+                price = pricePart,
+                weight = weightPart,
+                description = descriptionPart,
+                image = imagePart
+            )
+            Log.d(TAG, "Update product response: ${response.code()}")
 
-                when {
-                    response.isSuccessful && response.body() != null -> {
-                        val product = response.body()!!.product
-                        Log.d(TAG, "Successfully updated product: ${product.name}")
-                        ApiResult.Success(product)
-                    }
-                    response.code() == 401 -> {
-                        Log.w(TAG, "Unauthorized - token invalid")
-                        ApiResult.Error("Sesi telah berakhir. Silakan login kembali.", statusCode = 401)
-                    }
-                    response.code() == 403 -> {
-                        Log.w(TAG, "Forbidden - not admin")
-                        ApiResult.Error("Anda tidak memiliki akses untuk mengupdate produk", statusCode = 403)
-                    }
-                    response.code() == 404 -> {
-                        Log.w(TAG, "Product not found")
-                        ApiResult.Error("Produk tidak ditemukan", statusCode = 404)
-                    }
-                    response.code() == 400 -> {
-                        val error = parseError(response.errorBody()?.string())
-                        Log.w(TAG, "Validation error: ${error.message}")
-                        ApiResult.Error(
-                            message = error.message,
-                            errors = error.errors,
-                            statusCode = response.code()
-                        )
-                    }
-                    else -> {
-                        val error = parseError(response.errorBody()?.string())
-                        Log.e(TAG, "Failed to update product: ${error.message}")
-                        ApiResult.Error(
-                            message = error.message,
-                            statusCode = response.code()
-                        )
-                    }
+            when {
+                response.isSuccessful && response.body() != null -> {
+                    val product = response.body()!!.product
+                    Log.d(TAG, "Successfully updated product: ${product.name}")
+                    ApiResult.Success(product)
+                }
+                response.code() == 401 -> {
+                    Log.w(TAG, "Unauthorized - token invalid")
+                    ApiResult.Error("Sesi telah berakhir. Silakan login kembali.", statusCode = 401)
+                }
+                response.code() == 403 -> {
+                    Log.w(TAG, "Forbidden - not admin")
+                    ApiResult.Error("Anda tidak memiliki akses untuk mengupdate produk", statusCode = 403)
+                }
+                response.code() == 404 -> {
+                    Log.w(TAG, "Product not found")
+                    ApiResult.Error("Produk tidak ditemukan", statusCode = 404)
+                }
+                response.code() == 400 -> {
+                    val error = parseError(response.errorBody()?.string())
+                    Log.w(TAG, "Validation error: ${error.message}")
+                    ApiResult.Error(
+                        message = error.message,
+                        errors = error.errors,
+                        statusCode = response.code()
+                    )
+                }
+                else -> {
+                    val error = parseError(response.errorBody()?.string())
+                    Log.e(TAG, "Failed to update product: ${error.message}")
+                    ApiResult.Error(
+                        message = error.message,
+                        statusCode = response.code()
+                    )
                 }
             }
-        } catch (e: IOException) {
-            Log.e(TAG, "Network error: ${e.message}", e)
-            ApiResult.Error("Koneksi internet bermasalah")
-        } catch (e: Exception) {
-            Log.e(TAG, "Unexpected error: ${e.message}", e)
-            ApiResult.Error("Terjadi kesalahan tak terduga")
         }
     }
 
@@ -332,44 +293,36 @@ class ProductRepository(private val tokenProvider: () -> String) {
     suspend fun deleteProduct(id: Int): ApiResult<Unit> {
         Log.d(TAG, "Deleting product: $id")
 
-        return try {
-            withContext(Dispatchers.IO) {
-                val response = apiService.deleteProduct(id)
-                Log.d(TAG, "Delete product response: ${response.code()}")
+        return safeApiCall {
+            val response = apiService.deleteProduct(id)
+            Log.d(TAG, "Delete product response: ${response.code()}")
 
-                when {
-                    response.isSuccessful -> {
-                        Log.d(TAG, "Successfully deleted product: $id")
-                        ApiResult.Success(Unit)
-                    }
-                    response.code() == 401 -> {
-                        Log.w(TAG, "Unauthorized - token invalid")
-                        ApiResult.Error("Sesi telah berakhir. Silakan login kembali.", statusCode = 401)
-                    }
-                    response.code() == 403 -> {
-                        Log.w(TAG, "Forbidden - not admin")
-                        ApiResult.Error("Anda tidak memiliki akses untuk menghapus produk", statusCode = 403)
-                    }
-                    response.code() == 404 -> {
-                        Log.w(TAG, "Product not found")
-                        ApiResult.Error("Produk tidak ditemukan", statusCode = 404)
-                    }
-                    else -> {
-                        val error = parseError(response.errorBody()?.string())
-                        Log.e(TAG, "Failed to delete product: ${error.message}")
-                        ApiResult.Error(
-                            message = error.message,
-                            statusCode = response.code()
-                        )
-                    }
+            when {
+                response.isSuccessful -> {
+                    Log.d(TAG, "Successfully deleted product: $id")
+                    ApiResult.Success(Unit)
+                }
+                response.code() == 401 -> {
+                    Log.w(TAG, "Unauthorized - token invalid")
+                    ApiResult.Error("Sesi telah berakhir. Silakan login kembali.", statusCode = 401)
+                }
+                response.code() == 403 -> {
+                    Log.w(TAG, "Forbidden - not admin")
+                    ApiResult.Error("Anda tidak memiliki akses untuk menghapus produk", statusCode = 403)
+                }
+                response.code() == 404 -> {
+                    Log.w(TAG, "Product not found")
+                    ApiResult.Error("Produk tidak ditemukan", statusCode = 404)
+                }
+                else -> {
+                    val error = parseError(response.errorBody()?.string())
+                    Log.e(TAG, "Failed to delete product: ${error.message}")
+                    ApiResult.Error(
+                        message = error.message,
+                        statusCode = response.code()
+                    )
                 }
             }
-        } catch (e: IOException) {
-            Log.e(TAG, "Network error: ${e.message}", e)
-            ApiResult.Error("Koneksi internet bermasalah")
-        } catch (e: Exception) {
-            Log.e(TAG, "Unexpected error: ${e.message}", e)
-            ApiResult.Error("Terjadi kesalahan tak terduga")
         }
     }
 
@@ -422,6 +375,28 @@ class ProductRepository(private val tokenProvider: () -> String) {
             }
         } catch (e: Exception) {
             ErrorResponse("Terjadi kesalahan pada server")
+        }
+    }
+
+    /**
+     * Helper function untuk menangani exception dengan aman
+     * CancellationException akan di-rethrow agar coroutine tahu job dibatalkan
+     */
+    private suspend fun <T> safeApiCall(apiCall: suspend () -> ApiResult<T>): ApiResult<T> {
+        return try {
+            withContext(Dispatchers.IO) {
+                apiCall()
+            }
+        } catch (e: CancellationException) {
+            // Job was cancelled (user navigated away), re-throw
+            Log.d(TAG, "Job was cancelled")
+            throw e
+        } catch (e: IOException) {
+            Log.e(TAG, "Network error: ${e.message}", e)
+            ApiResult.Error("Koneksi internet bermasalah")
+        } catch (e: Exception) {
+            Log.e(TAG, "Unexpected error: ${e.message}", e)
+            ApiResult.Error("Terjadi kesalahan tak terduga")
         }
     }
 }

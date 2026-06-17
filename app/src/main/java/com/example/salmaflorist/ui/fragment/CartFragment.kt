@@ -116,6 +116,8 @@ class CartFragment : Fragment() {
     }
 
     private fun displayCart() {
+        if (_binding == null) return
+
         if (cartItems.isEmpty()) {
             showEmptyCart()
         } else {
@@ -189,6 +191,7 @@ class CartFragment : Fragment() {
     }
 
     private fun showEmptyCart() {
+        if (_binding == null) return
         binding.layoutEmptyCart.visibility = View.VISIBLE
         binding.layoutNotLoggedIn.visibility = View.GONE
         binding.rvCart.visibility = View.GONE
@@ -196,12 +199,14 @@ class CartFragment : Fragment() {
     }
 
     private fun calculateTotal() {
+        if (_binding == null) return
         val total = cartItems.sumOf { (it.product?.price ?: 0) * it.quantity }
         val formatter = java.text.NumberFormat.getCurrencyInstance(java.util.Locale("in", "ID"))
         binding.tvTotalPrice.text = formatter.format(total).replace("Rp", "Rp ")
     }
 
     private fun showLoading(isLoading: Boolean) {
+        if (_binding == null) return
         if (isLoading) {
             binding.progressBar.visibility = View.VISIBLE
             binding.rvCart.visibility = View.GONE

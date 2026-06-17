@@ -142,6 +142,8 @@ class ProfileFragment : Fragment() {
     }
 
     private fun displayOrders(orders: List<OrderDetailDto>) {
+        if (_binding == null) return
+
         if (orders.isEmpty()) {
             showEmptyOrders()
         } else {
@@ -155,11 +157,13 @@ class ProfileFragment : Fragment() {
     }
 
     private fun showEmptyOrders() {
+        if (_binding == null) return
         binding.tvEmptyOrders.visibility = View.VISIBLE
         binding.rvOrderHistory.visibility = View.GONE
     }
 
     private fun showLoading(isLoading: Boolean) {
+        if (_binding == null) return
         if (isLoading) {
             binding.tvEmptyOrders.text = "Memuat pesanan..."
             binding.tvEmptyOrders.visibility = View.VISIBLE

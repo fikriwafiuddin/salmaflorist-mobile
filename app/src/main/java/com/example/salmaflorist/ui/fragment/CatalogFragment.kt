@@ -198,6 +198,8 @@ class CatalogFragment : Fragment() {
      * Display produk di RecyclerView
      */
     private fun displayProducts(products: List<Product>) {
+        if (_binding == null) return
+
         if (products.isEmpty()) {
             showEmptyState()
         } else {
@@ -216,11 +218,13 @@ class CatalogFragment : Fragment() {
     }
 
     private fun showEmptyState() {
+        if (_binding == null) return
         binding.tvEmptyState.visibility = View.VISIBLE
         binding.rvProducts.visibility = View.GONE
     }
 
     private fun showLoading(isLoading: Boolean) {
+        if (_binding == null) return
         // For now, we don't have a loading indicator in the layout
         // Could add one or use the empty state as loading placeholder
         if (isLoading) {

@@ -126,6 +126,8 @@ class ProductDetailFragment : Fragment() {
     }
 
     private fun displayProduct(p: com.example.salmaflorist.data.api.dto.ProductDto) {
+        if (_binding == null) return
+
         binding.tvProductName.text = p.name
         binding.tvProductDescription.text = p.description ?: "Tidak ada deskripsi"
         p.category?.let {
@@ -160,6 +162,7 @@ class ProductDetailFragment : Fragment() {
     }
 
     private fun updateTotalPrice() {
+        if (_binding == null) return
         product?.let { p ->
             val localeID = Locale("in", "ID")
             val formatter = NumberFormat.getCurrencyInstance(localeID)
@@ -216,6 +219,7 @@ class ProductDetailFragment : Fragment() {
     }
 
     private fun showLoading(isLoading: Boolean) {
+        if (_binding == null) return
         if (isLoading) {
             binding.btnAddToCart.isEnabled = false
             binding.btnAddToCart.text = "Memuat..."
